@@ -1,0 +1,1743 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cepat.Digital Ads Image Generator: Magic Konten Generation</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #111827;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        /* Navigation */
+        .top-nav-container {
+            max-width: 80rem;
+            margin: 0 auto;
+        }
+        .top-nav-link {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1.25rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .top-nav-link-default {
+            background-color: #ffffff;
+            color: #374151;
+            border: 1px solid #D1D5DB;
+        }
+        .top-nav-link-default:hover {
+            background-color: #EFF6FF;
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+        .top-nav-link-active {
+            background-color: #3b82f6;
+            color: #ffffff;
+            border: 1px solid #3b82f6;
+        }
+        .card {
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+            transition: background-color 0.3s;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+        .btn-primary:disabled {
+            background-color: #d1d5db;
+            color: #6b7280;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        .btn-secondary {
+            background-color: #e5e7eb;
+            color: #4b5563;
+            transition: background-color 0.3s;
+        }
+        .btn-secondary:hover {
+            background-color: #d1d5db;
+        }
+        .btn-secondary:disabled {
+             background-color: #f3f4f6;
+             color: #9ca3af;
+             cursor: not-allowed;
+        }
+        .loader {
+            border: 3px solid rgba(59, 130, 246, 0.5);
+            border-left-color: #ffffff;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        .b-roll-card .loader {
+             width: 40px;
+             height: 40px;
+             border-width: 4px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .file-input-label {
+            cursor: pointer;
+            border: 2px dashed #9ca3af;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: border-color 0.3s, background-color 0.3s;
+            height: 100%;
+        }
+        .file-input-label:hover {
+            border-color: #6b7280;
+            background-color: #f9fafb;
+        }
+        .b-roll-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .b-roll-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        /* Modal Styles */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-backdrop.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-content {
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            width: 90%;
+            max-width: 500px;
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+         .modal-backdrop.visible .modal-content {
+            transform: scale(1);
+        }
+        /* Sidebar Button Styles */
+        .sidebar-btn {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s, color 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        /* Floating Menu for Mobile */
+        .mobile-nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #ffffff;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-around;
+            padding: 0.5rem 0;
+            z-index: 40;
+            box-shadow: 0 -4px 14px rgba(0,0,0,0.05);
+        }
+        .mobile-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+            color: #6b7280;
+            font-size: 0.75rem;
+            line-height: 1;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            transition: color 0.3s, background-color 0.3s;
+        }
+        .mobile-nav-item.active {
+            color: #3b82f6;
+        }
+        .mobile-nav-item:hover {
+            color: #111827;
+            background-color: #f3f4f6;
+        }
+        /* Universal Upload/Loader Styles */
+        .upload-box {
+            border: 2px dashed #d1d5db;
+            transition: all 0.3s ease;
+        }
+        .upload-box.dragging {
+            border-color: #3b82f6;
+            background-color: #f3f4f6;
+        }
+        .upload-box img {
+            max-height: 100%;
+            max-width: 100%;
+            object-fit: contain;
+        }
+        .generic-loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3b82f6;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        .card-loader {
+            border: 3px solid rgba(0, 0, 0, 0.2);
+            border-left-color: #3b82f6;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        /* Tailwind v3 polyfills */
+        .rounded-2xl { border-radius: 1rem; }
+        .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+        .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); }
+
+        /* API Key Gate */
+        #api-key-gate {
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .api-key-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-family: monospace;
+            border: 1px solid #e5e7eb;
+            background: #f9fafb;
+            color: #374151;
+            max-width: 250px;
+            overflow: hidden;
+        }
+        .api-key-chip.active {
+            border-color: #22c55e;
+            background: #f0fdf4;
+            color: #166534;
+        }
+        .api-key-chip.error {
+            border-color: #ef4444;
+            background: #fef2f2;
+            color: #991b1b;
+        }
+        .api-key-chip .remove-key {
+            cursor: pointer;
+            margin-left: 0.25rem;
+            color: #9ca3af;
+            font-weight: bold;
+            font-size: 1rem;
+            line-height: 1;
+        }
+        .api-key-chip .remove-key:hover {
+            color: #ef4444;
+        }
+        .key-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+        .key-status-dot.valid { background-color: #22c55e; }
+        .key-status-dot.invalid { background-color: #ef4444; }
+        .key-status-dot.unknown { background-color: #d1d5db; }
+        #app-main-wrapper { transition: filter 0.3s, opacity 0.3s; }
+        #app-main-wrapper.locked { filter: blur(4px); pointer-events: none; opacity: 0.4; user-select: none; }
+        .manage-keys-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.875rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            border: 1px solid #D1D5DB;
+            background: #fff;
+            color: #374151;
+            transition: all 0.2s;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .manage-keys-btn:hover {
+            border-color: #3b82f6;
+            color: #3b82f6;
+            background: #eff6ff;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <!-- Top Navigation -->
+    <nav class="py-4 px-4 sm:px-6 lg:px-8">
+        <div class="top-nav-container flex flex-wrap items-center justify-center gap-3">
+            <a href="index.html" class="top-nav-link top-nav-link-default">🎬 Prompt Generator</a>
+            <a href="grok.html" class="top-nav-link top-nav-link-default">🤖 Grok Generator</a>
+            <a href="image-studio.html" class="top-nav-link top-nav-link-active">🎨 Image Studio</a>
+            <button id="open-key-manager" class="manage-keys-btn">🔑 API Keys <span id="key-count-badge" class="bg-blue-100 text-blue-700 rounded-full px-2 py-0 text-xs font-bold">0</span></button>
+        </div>
+    </nav>
+
+    <div class="relative md:flex">
+        <!-- Sidebar Navigation (Desktop) -->
+        <aside class="hidden md:flex flex-col w-64 bg-white border-r min-h-screen">
+            <div class="flex items-center justify-center h-20 border-b">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center shadow-lg transform -rotate-12">
+                        <i data-lucide="anchor" class="text-white text-xl"></i>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-900">Cepat.Digital</h1>
+                </div>
+            </div>
+            <nav class="flex-1 px-4 py-4 space-y-2">
+                <button id="tab-product-photography" class="sidebar-btn">
+                    <i data-lucide="image" class="w-5 h-5 mr-3"></i>
+                    <span>Gabungin Foto</span>
+                </button>
+                <button id="tab-virtual-try-on" class="sidebar-btn">
+                     <i data-lucide="shopping-bag" class="w-5 h-5 mr-3"></i>
+                    <span>Virtual Produk</span>
+                </button>
+                <button id="tab-fashion-pose" class="sidebar-btn">
+                    <i data-lucide="sparkles" class="w-5 h-5 mr-3"></i>
+                    <span>Ganti Gaya</span>
+                </button>
+                <button id="tab-combine-text" class="sidebar-btn">
+                    <i data-lucide="type" class="w-5 h-5 mr-3"></i>
+                    <span>Gabungin Teks</span>
+                </button>
+                <button id="tab-campaign-strategy" class="sidebar-btn">
+                    <i data-lucide="target" class="w-5 h-5 mr-3"></i>
+                    <span>Strategi Kampanye</span>
+                </button>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main id="app-main-wrapper" class="flex-1 pb-20 md:pb-0 locked">
+             <div class="w-full mx-auto p-4 sm:p-6 lg:p-8">
+                <header class="text-center mb-8 md:hidden">
+                    <div class="flex items-center justify-center space-x-4 mb-2">
+                        <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center shadow-lg transform -rotate-12">
+                            <i data-lucide="anchor" class="text-white text-2xl"></i>
+                        </div>
+                        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 tracking-tight">Cepat.Digital</h1>
+                    </div>
+                    <p class="text-lg text-gray-600 mt-3 max-w-3xl mx-auto">Ads Image Generator</p>
+                </header>
+
+                <!-- Tab Content -->
+                <div id="content-product-photography">
+                    <main class="flex flex-col lg:flex-row gap-8">
+                        <!-- Input Column -->
+                        <div class="card p-6 w-full lg:w-1/3 lg:max-w-sm flex-shrink-0 self-start">
+                            <div class="flex flex-col gap-6">
+                                <div>
+                                    <h2 class="text-xl font-semibold mb-3 text-gray-900">1. Unggah Gambar Produk</h2>
+                                    <div id="image-upload-area">
+                                        <label for="image-input" class="file-input-label rounded-lg text-center text-gray-500">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                            <span>Pilih Gambar Produk</span>
+                                        </label>
+                                        <input type="file" id="image-input" class="hidden" accept="image/png, image/jpeg, image/webp">
+                                    </div>
+                                    <div id="image-preview-container" class="hidden mt-4 relative">
+                                        <img id="image-preview" src="#" alt="Pratinjau Produk" class="rounded-lg w-full h-auto object-contain">
+                                        <button id="remove-image-btn" class="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1.5 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <div class="flex justify-between items-center mb-3">
+                                        <h2 class="text-xl font-semibold text-gray-900">2. Deskripsi Produk</h2>
+                                        <button id="generate-desc-btn" class="btn-secondary text-sm font-semibold py-1 px-3 rounded-md flex items-center" disabled>
+                                            ✨ Buat Deskripsi
+                                        </button>
+                                    </div>
+                                    <textarea id="product-desc-input" rows="4" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Contoh: Smartwatch X200 tahan air dengan GPS... atau klik 'Buat Deskripsi' setelah unggah gambar."></textarea>
+                                </div>
+
+                                <div>
+                                    <h2 class="text-xl font-semibold mb-3 text-gray-900">3. Unggah Foto Model <span class="text-sm text-gray-500">(Opsional)</span></h2>
+                                    <div id="model-image-upload-area">
+                                        <label for="model-image-input" class="file-input-label rounded-lg text-center text-gray-500">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                                            <span>Pilih Foto Model</span>
+                                        </label>
+                                        <input type="file" id="model-image-input" class="hidden" accept="image/png, image/jpeg, image/webp">
+                                    </div>
+                                    <div id="model-image-preview-container" class="hidden mt-4 relative">
+                                        <img id="model-image-preview" src="#" alt="Pratinjau Model" class="rounded-lg w-full h-auto object-contain">
+                                        <button id="remove-model-image-btn" class="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1.5 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <h2 class="text-xl font-semibold mb-3 text-gray-900">4. Tema Foto <span class="text-sm text-gray-500">(Opsional)</span></h2>
+                                    <textarea id="photo-theme-input" rows="3" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Contoh: Minimalis & bersih, nuansa alam tropis, futuristik dengan neon..."></textarea>
+                                </div>
+
+                                <button id="generate-btn" class="w-full btn-primary font-bold py-3 px-4 rounded-lg flex items-center justify-center text-lg" disabled>
+                                    <span>Buat 6 Pose Produk</span>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Output Grid -->
+                        <div class="flex-grow">
+                            <div id="b-roll-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                            </div>
+                        </div>
+                    </main>
+                </div>
+
+                <div id="content-virtual-try-on" class="hidden">
+                    <!-- Main Content Grid -->
+                    <main class="w-full flex-grow grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Kolom Input -->
+                        <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Product Upload -->
+                            <div class="bg-white p-4 rounded-xl shadow-lg flex flex-col">
+                                <h2 class="text-xl font-semibold mb-3 text-center text-gray-900">1. Unggah Foto Produk</h2>
+                                <div id="vto-product-upload-box" class="upload-box w-full h-64 sm:h-80 flex-grow rounded-lg flex items-center justify-center cursor-pointer relative overflow-hidden">
+                                    <div id="vto-product-placeholder" class="text-center text-gray-400">
+                                        <svg class="mx-auto h-12 w-12" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                                        <p class="mt-2">Seret & lepas atau klik untuk memilih</p>
+                                    </div>
+                                    <img id="vto-product-preview" class="hidden absolute top-0 left-0 w-full h-full" alt="Pratinjau Produk">
+                                </div>
+                                <input type="file" id="vto-product-input" class="hidden" accept="image/*">
+                            </div>
+
+                            <!-- Model Upload -->
+                            <div class="bg-white p-4 rounded-xl shadow-lg flex flex-col">
+                                <h2 class="text-xl font-semibold mb-3 text-center text-gray-900">2. Unggah Foto Model</h2>
+                                <div id="vto-model-upload-box" class="upload-box w-full h-64 sm:h-80 flex-grow rounded-lg flex items-center justify-center cursor-pointer relative overflow-hidden">
+                                    <div id="vto-model-placeholder" class="text-center text-gray-400">
+                                        <svg class="mx-auto h-12 w-12" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        <p class="mt-2">Seret & lepas atau klik untuk memilih</p>
+                                    </div>
+                                    <img id="vto-model-preview" class="hidden absolute top-0 left-0 w-full h-full" alt="Pratinjau Model">
+                                </div>
+                                <input type="file" id="vto-model-input" class="hidden" accept="image/*">
+                            </div>
+                        </div>
+
+                        <!-- Kolom Output -->
+                        <div class="lg:col-span-1 bg-white p-4 rounded-xl shadow-lg flex flex-col">
+                            <h2 class="text-xl font-semibold mb-3 text-center text-gray-900">3. Hasil Generate AI</h2>
+                            <div id="vto-output-box" class="w-full h-full min-h-0 flex-grow rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden relative" style="min-height:300px;">
+                                <div id="vto-output-placeholder" class="text-center text-gray-300">
+                                    <svg class="mx-auto h-16 w-16" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                                    <p class="mt-2">Hasil akan muncul di sini</p>
+                                </div>
+                                <div id="vto-loader" class="hidden text-center">
+                                    <div class="generic-loader mx-auto"></div>
+                                    <p class="mt-4 text-gray-500">AI sedang bekerja...</p>
+                                </div>
+                                <img id="vto-result-image" class="hidden w-full h-full object-contain" alt="Hasil Generate AI">
+                                <!-- Kontrol untuk hasil gambar -->
+                                <div id="vto-output-controls" class="absolute bottom-0 left-0 right-0 hidden flex justify-between items-center bg-black bg-opacity-60 p-2 transition-opacity duration-300">
+                                    <p id="vto-image-dimensions" class="text-sm text-gray-200 font-mono"></p>
+                                    <a id="vto-download-btn" href="#" download="hasil-coba-virtual.png" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full text-sm transition-transform transform hover:scale-105">
+                                        Unduh
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+                    <!-- Tombol Generate dan Status -->
+                    <footer class="w-full mt-6 text-center">
+                        <button id="vto-generate-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-12 rounded-full shadow-lg transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                            Generate Gambar
+                        </button>
+                        <p id="vto-status-message" class="text-red-600 mt-4 h-6"></p>
+                    </footer>
+                </div>
+
+                <div id="content-fashion-pose" class="hidden">
+                    <div class="bg-white rounded-2xl shadow-2xl p-6 md:p-10 w-full border border-gray-200 mx-auto">
+                        <!-- Header -->
+                        <div class="text-center mb-8">
+                            <p class="text-gray-500 mt-2">Unggah foto model, tulis pose, dan biarkan AI mengubahnya.</p>
+                        </div>
+
+                        <!-- Error Message -->
+                        <div id="fp-errorContainer" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-6" role="alert">
+                            <strong class="font-bold">Oops! </strong>
+                            <span class="block sm:inline" id="fp-errorMessage">Terjadi kesalahan.</span>
+                        </div>
+
+                        <!-- Upload Section -->
+                        <div class="bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-blue-500 transition-colors" id="fp-uploadArea">
+                            <label for="fp-imageUpload" class="cursor-pointer">
+                                <div class="flex flex-col items-center justify-center">
+                                    <i data-lucide="cloud-upload" class="w-16 h-16 text-gray-400 mb-4"></i>
+                                    <p class="font-semibold text-lg">Klik untuk mengunggah atau seret gambar</p>
+                                    <p class="text-sm text-gray-500 mt-1">PNG, JPG, atau WEBP (Maks. 5MB)</p>
+                                </div>
+                                <input type="file" id="fp-imageUpload" class="hidden" accept="image/png, image/jpeg, image/webp">
+                            </label>
+                        </div>
+                        
+                        <!-- Preview Uploaded Image -->
+                        <div id="fp-previewContainer" class="hidden mt-6 text-center">
+                            <p class="font-semibold mb-2">Gambar yang diunggah:</p>
+                            <div class="relative inline-block border-2 border-gray-300 rounded-xl p-2">
+                                <img id="fp-imagePreview" src="" alt="Pratinjau Gambar" class="max-h-40 rounded-lg mx-auto">
+                            </div>
+                            <p id="fp-fileName" class="text-sm text-gray-500 mt-2"></p>
+                        </div>
+                        
+                        <!-- Pose Input Section -->
+                        <div class="mt-8">
+                            <label for="fp-poseInput" class="block font-semibold mb-2">Tulis Pose yang Diinginkan</label>
+                            <textarea id="fp-poseInput" class="w-full p-4 bg-gray-100 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none" rows="4" placeholder="Contoh: 'Pose dinamis dengan tangan di pinggul dan tangan lainnya diangkat', 'Berdiri tegak dengan kaki bersilang', 'Duduk di kursi sambil menatap kamera dengan serius'"></textarea>
+                        </div>
+
+                        <!-- Generate Button -->
+                        <div class="mt-8 text-center">
+                            <button id="fp-generateBtn" disabled class="bg-blue-500 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-600 transition-all disabled:bg-gray-200 disabled:cursor-not-allowed disabled:text-gray-500 shadow-lg" style="box-shadow: 0 4px 14px rgba(59, 130, 246, 0.2);">
+                                <span class="flex items-center justify-center">
+                                    <i data-lucide="sparkles" class="w-5 h-5 mr-2"></i>
+                                    Buat Pose
+                                </span>
+                            </button>
+                        </div>
+
+                        <!-- Results Section -->
+                        <div id="fp-resultsContainer" class="hidden mt-10">
+                            <h2 class="text-2xl font-bold text-center mb-6">Hasil Pose</h2>
+                            <div id="fp-resultsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="content-combine-text" class="hidden">
+                    <main class="flex flex-col lg:flex-row gap-8">
+                        <!-- Input Column -->
+                        <div class="card p-6 w-full lg:w-1/3 lg:max-w-sm flex-shrink-0 self-start">
+                            <div class="flex flex-col gap-6">
+                                <div>
+                                    <h2 class="text-xl font-semibold mb-3 text-gray-900">1. Unggah Gambar Iklan</h2>
+                                    <div id="ct-image-upload-area">
+                                        <label for="ct-image-input" class="file-input-label rounded-lg text-center text-gray-500">
+                                            <i data-lucide="image-plus" class="w-10 h-10 mb-2"></i>
+                                            <span>Pilih Gambar Utama</span>
+                                        </label>
+                                        <input type="file" id="ct-image-input" class="hidden" accept="image/png, image/jpeg, image/webp">
+                                    </div>
+                                    <div id="ct-image-preview-container" class="hidden mt-4 relative">
+                                        <img id="ct-image-preview" src="#" alt="Pratinjau Iklan" class="rounded-lg w-full h-auto object-contain">
+                                        <button id="ct-remove-image-btn" class="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1.5 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <div class="flex justify-between items-center mb-3">
+                                        <h2 class="text-xl font-semibold text-gray-900">2. Deskripsi Iklan</h2>
+                                        <button id="ct-generate-desc-btn" class="btn-secondary text-sm font-semibold py-1 px-3 rounded-md flex items-center" disabled>
+                                            ✨ Buat Deskripsi
+                                        </button>
+                                    </div>
+                                    <textarea id="ct-desc-input" rows="3" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Jelaskan produk Anda atau biarkan AI yang membuatnya."></textarea>
+                                </div>
+                                
+                                <div>
+                                    <div class="flex justify-between items-center mb-3">
+                                        <h2 class="text-xl font-semibold text-gray-900">3. Headline / Hook</h2>
+                                        <button id="ct-generate-headline-btn" class="btn-secondary text-sm font-semibold py-1 px-3 rounded-md flex items-center" disabled>
+                                            ✨ Buat Headline
+                                        </button>
+                                    </div>
+                                    <textarea id="ct-headline-input" rows="2" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Tulis headline menarik Anda di sini."></textarea>
+                                </div>
+
+                                <div>
+                                    <h2 class="text-xl font-semibold mb-3 text-gray-900">4. Tema Iklan <span class="text-sm text-gray-500">(Opsional)</span></h2>
+                                    <textarea id="ct-ad-theme-input" rows="2" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Contoh: Elegan & mewah, ceria & penuh warna, promo diskon..."></textarea>
+                                </div>
+
+                                <button id="ct-generate-btn" class="w-full btn-primary font-bold py-3 px-4 rounded-lg flex items-center justify-center text-lg" disabled>
+                                    <span>Buat 6 Variasi Iklan</span>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Output Grid -->
+                        <div class="flex-grow">
+                            <div id="ct-results-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                            </div>
+                        </div>
+                    </main>
+                </div>
+
+                <div id="content-campaign-strategy" class="hidden">
+                     <main class="flex flex-col lg:flex-row gap-8">
+                        <!-- Input Column -->
+                        <div class="card p-6 w-full lg:w-1/3 lg:max-w-sm flex-shrink-0 self-start">
+                            <div class="flex flex-col gap-6">
+                                <div>
+                                    <h2 class="text-xl font-semibold mb-3 text-gray-900">1. Unggah Gambar Produk</h2>
+                                    <div id="cs-image-upload-area">
+                                        <label for="cs-image-input" class="file-input-label rounded-lg text-center text-gray-500">
+                                            <i data-lucide="image-plus" class="w-10 h-10 mb-2"></i>
+                                            <span>Pilih Gambar Produk</span>
+                                        </label>
+                                        <input type="file" id="cs-image-input" class="hidden" accept="image/png, image/jpeg, image/webp">
+                                    </div>
+                                    <div id="cs-image-preview-container" class="hidden mt-4 relative">
+                                        <img id="cs-image-preview" src="#" alt="Pratinjau Produk Kampanye" class="rounded-lg w-full h-auto object-contain">
+                                        <button id="cs-remove-image-btn" class="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1.5 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h2 class="text-xl font-semibold text-gray-900 mb-3">2. Nama & Deskripsi Produk</h2>
+                                    <textarea id="cs-desc-input" rows="5" class="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Contoh: 'Sepatu Lari Aero-Fly', sepatu lari ultra-ringan dengan teknologi bantalan terbaru untuk performa maksimal."></textarea>
+                                </div>
+
+                                <button id="cs-generate-btn" class="w-full btn-primary font-bold py-3 px-4 rounded-lg flex items-center justify-center text-lg" disabled>
+                                    <span>✨ Buat Strategi Kampanye</span>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Output Area -->
+                        <div class="flex-grow">
+                            <div id="cs-results-container" class="space-y-6">
+                                <div class="text-center py-20 px-6 text-gray-500 bg-white rounded-lg border">
+                                    <i data-lucide="target" class="w-16 h-16 mx-auto mb-4 text-gray-400"></i>
+                                    <h3 class="text-xl font-semibold text-gray-700">Strategi Kampanye Anda</h3>
+                                    <p class="mt-2">Hasil analisis target audiens, slogan, ide konten, dan draf email akan muncul di sini.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+                
+             </div>
+             <footer class="text-center py-6 mt-4 text-sm text-gray-500 border-t border-gray-200">
+                <p>&copy; 2024 Cepat.Digital. Hak Cipta Dilindungi Undang-Undang.</p>
+                <p class="mt-1">Dilarang menyalin atau mendistribusikan ulang kode tanpa izin tertulis.</p>
+            </footer>
+        </main>
+    </div>
+
+    <!-- API Key Gate Modal -->
+    <div id="api-key-gate" class="fixed inset-0 bg-gray-900 bg-opacity-60 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 max-w-lg w-full p-6 sm:p-8">
+            <div class="text-center mb-6">
+                <div class="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900">Masukkan API Key Gemini</h2>
+                <p class="text-sm text-gray-500 mt-2">Diperlukan untuk mengakses fitur AI Image Studio. Anda bisa menambahkan beberapa key untuk rotasi otomatis saat limit habis.</p>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Gemini API Key</label>
+                    <div class="flex gap-2">
+                        <input type="password" id="api-key-input" class="flex-1 rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:ring-blue-500" placeholder="AIzaSy...">
+                        <button id="toggle-key-visibility" class="px-3 border border-gray-300 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition" title="Tampilkan/Sembunyikan">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                <button id="add-key-btn" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2.5 px-4 rounded-lg transition-all duration-200 flex items-center justify-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                    Validasi & Tambah Key
+                </button>
+                <p id="key-validation-msg" class="text-sm text-center hidden"></p>
+                <!-- Daftar Key Tersimpan -->
+                <div id="saved-keys-section" class="border-t border-gray-200 pt-4 mt-4 hidden">
+                    <h3 class="text-sm font-semibold text-gray-700 mb-2">API Keys Tersimpan (<span id="saved-key-count">0</span>)</h3>
+                    <div id="saved-keys-list" class="flex flex-wrap gap-2 max-h-32 overflow-y-auto"></div>
+                </div>
+                <!-- Tombol Masuk -->
+                <button id="enter-app-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 hidden">
+                    ✅ Masuk ke Image Studio
+                </button>
+                <p class="text-xs text-gray-400 text-center">API Key disimpan di browser Anda (localStorage). Tidak dikirim ke server manapun selain Google AI.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Universal Modal -->
+    <div id="universal-modal" class="modal-backdrop">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modal-title" class="text-xl font-bold text-gray-900"></h3>
+                <button id="close-modal-btn" class="text-gray-400 hover:text-gray-900 text-3xl">&times;</button>
+            </div>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- Floating Navigation for Mobile -->
+    <div class="mobile-nav-bar md:hidden">
+        <button id="mobile-nav-product-photography" class="mobile-nav-item active">
+            <i data-lucide="image" class="w-5 h-5"></i>
+            <span>Produk</span>
+        </button>
+        <button id="mobile-nav-virtual-try-on" class="mobile-nav-item">
+            <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+            <span>Virtual</span>
+        </button>
+        <button id="mobile-nav-fashion-pose" class="mobile-nav-item">
+            <i data-lucide="sparkles" class="w-5 h-5"></i>
+            <span>Pose</span>
+        </button>
+         <button id="mobile-nav-combine-text" class="mobile-nav-item">
+            <i data-lucide="type" class="w-5 h-5"></i>
+            <span>Teks</span>
+        </button>
+        <button id="mobile-nav-campaign-strategy" class="mobile-nav-item">
+            <i data-lucide="target" class="w-5 h-5"></i>
+            <span>Strategi</span>
+        </button>
+    </div>
+
+    <script>
+        // --- API KEY MANAGER ---
+        const STORAGE_KEY = 'grok_gemini_api_keys';
+        let apiKeys = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        let failedKeysThisSession = new Set();
+
+        const getActiveKey = () => {
+            const available = apiKeys.filter(k => k.status !== 'invalid' && !failedKeysThisSession.has(k.key));
+            if (available.length === 0) {
+                failedKeysThisSession.clear();
+                const fallback = apiKeys.filter(k => k.status !== 'invalid');
+                if (fallback.length === 0) return null;
+                return fallback[Math.floor(Math.random() * fallback.length)].key;
+            }
+            return available[Math.floor(Math.random() * available.length)].key;
+        };
+
+        const markKeyLimited = (key) => {
+            failedKeysThisSession.add(key);
+            const entry = apiKeys.find(k => k.key === key);
+            if (entry) entry.status = 'limited';
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(apiKeys));
+            console.warn('Key ...' + key.slice(-6) + ' marked limited. Rotating...');
+        };
+
+        const buildApiUrl = (model) => {
+            const key = getActiveKey();
+            if (!key) throw new Error('Tidak ada API Key yang tersedia. Silakan tambahkan API Key.');
+            return { url: 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + key, usedKey: key };
+        };
+
+        const getTextApiUrl = () => buildApiUrl('gemini-2.5-flash-preview-05-20');
+        const getImageApiUrl = () => buildApiUrl('gemini-2.5-flash-image-preview');
+
+        // Smart fetch with key rotation on 429
+        async function apiFetch(url, options, usedKey) {
+            let currentUrl = url;
+            let currentKey = usedKey;
+            for (let attempt = 0; attempt < 5; attempt++) {
+                const response = await fetch(currentUrl, options);
+                if (response.status === 429 && currentKey) {
+                    markKeyLimited(currentKey);
+                    const newKey = getActiveKey();
+                    if (!newKey) throw new Error('Semua API Key telah mencapai limit.');
+                    currentUrl = currentUrl.replace(currentKey, newKey);
+                    currentKey = newKey;
+                    const delay = Math.pow(2, attempt) * 1000;
+                    await new Promise(r => setTimeout(r, delay));
+                    continue;
+                }
+                return response;
+            }
+            throw new Error('Gagal setelah beberapa percobaan (rate limit).');
+        }
+
+        // --- API Key Gate UI ---
+        const apiKeyGate = document.getElementById('api-key-gate');
+        const apiKeyInput = document.getElementById('api-key-input');
+        const addKeyBtn = document.getElementById('add-key-btn');
+        const keyValidationMsg = document.getElementById('key-validation-msg');
+        const savedKeysSection = document.getElementById('saved-keys-section');
+        const savedKeysList = document.getElementById('saved-keys-list');
+        const savedKeyCount = document.getElementById('saved-key-count');
+        const enterAppBtn = document.getElementById('enter-app-btn');
+        const toggleKeyVisBtn = document.getElementById('toggle-key-visibility');
+        const openKeyManagerBtn = document.getElementById('open-key-manager');
+        const keyCountBadge = document.getElementById('key-count-badge');
+        const appMainWrapper = document.getElementById('app-main-wrapper');
+
+        const showKeyMsg = (msg, isError) => {
+            keyValidationMsg.textContent = msg;
+            keyValidationMsg.classList.remove('hidden', 'text-green-600', 'text-red-600');
+            keyValidationMsg.classList.add(isError ? 'text-red-600' : 'text-green-600');
+        };
+        const hideKeyMsg = () => keyValidationMsg.classList.add('hidden');
+
+        const renderKeyList = () => {
+            savedKeyCount.textContent = apiKeys.length;
+            keyCountBadge.textContent = apiKeys.length;
+            if (apiKeys.length === 0) {
+                savedKeysSection.classList.add('hidden');
+                enterAppBtn.classList.add('hidden');
+                appMainWrapper.classList.add('locked');
+                return;
+            }
+            savedKeysSection.classList.remove('hidden');
+            enterAppBtn.classList.remove('hidden');
+            savedKeysList.innerHTML = '';
+            apiKeys.forEach((entry, idx) => {
+                const chip = document.createElement('div');
+                const statusClass = entry.status === 'valid' ? 'active' : (entry.status === 'invalid' ? 'error' : '');
+                const dotClass = entry.status === 'valid' ? 'valid' : (entry.status === 'invalid' ? 'invalid' : 'unknown');
+                chip.className = 'api-key-chip ' + statusClass;
+                chip.innerHTML = '<span class="key-status-dot ' + dotClass + '"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">...' + entry.key.slice(-8) + '</span><span class="remove-key" data-idx="' + idx + '">&times;</span>';
+                savedKeysList.appendChild(chip);
+            });
+            savedKeysList.querySelectorAll('.remove-key').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = parseInt(e.target.dataset.idx);
+                    apiKeys.splice(idx, 1);
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(apiKeys));
+                    renderKeyList();
+                    if (apiKeys.length === 0) {
+                        appMainWrapper.classList.add('locked');
+                        apiKeyGate.classList.remove('hidden');
+                    }
+                });
+            });
+        };
+
+        const validateApiKey = async (key) => {
+            try {
+                const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models?key=' + key);
+                if (res.ok) return { valid: true };
+                if (res.status === 400 || res.status === 403) return { valid: false, msg: 'API Key tidak valid atau tidak memiliki akses.' };
+                if (res.status === 429) return { valid: true, msg: 'Key valid tapi sedang rate-limited. Tetap ditambahkan.' };
+                return { valid: false, msg: 'Error ' + res.status };
+            } catch (e) {
+                return { valid: false, msg: 'Gagal koneksi ke Google AI. Periksa internet Anda.' };
+            }
+        };
+
+        addKeyBtn.addEventListener('click', async () => {
+            const key = apiKeyInput.value.trim();
+            if (!key) { showKeyMsg('Masukkan API Key terlebih dahulu.', true); return; }
+            if (!key.startsWith('AIza')) { showKeyMsg('Format API Key tidak valid. Key Gemini dimulai dengan "AIza...".', true); return; }
+            if (apiKeys.find(k => k.key === key)) { showKeyMsg('API Key ini sudah ada dalam daftar.', true); return; }
+
+            addKeyBtn.disabled = true;
+            addKeyBtn.innerHTML = '<span class="loader" style="width:20px;height:20px;border-width:2px;border-color:rgba(255,255,255,0.5);border-left-color:#fff;display:inline-block;"></span> Memvalidasi...';
+            hideKeyMsg();
+
+            const result = await validateApiKey(key);
+            addKeyBtn.disabled = false;
+            addKeyBtn.innerHTML = '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg> Validasi & Tambah Key';
+
+            if (result.valid) {
+                apiKeys.push({ key: key, status: 'valid' });
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(apiKeys));
+                apiKeyInput.value = '';
+                showKeyMsg(result.msg || 'API Key valid! Berhasil ditambahkan.', false);
+                renderKeyList();
+            } else {
+                showKeyMsg(result.msg, true);
+            }
+        });
+
+        toggleKeyVisBtn.addEventListener('click', () => {
+            apiKeyInput.type = apiKeyInput.type === 'password' ? 'text' : 'password';
+        });
+
+        enterAppBtn.addEventListener('click', () => {
+            if (apiKeys.length > 0) {
+                apiKeyGate.classList.add('hidden');
+                appMainWrapper.classList.remove('locked');
+            }
+        });
+
+        openKeyManagerBtn.addEventListener('click', () => {
+            apiKeyGate.classList.remove('hidden');
+        });
+
+        // On page load: check keys
+        if (apiKeys.length > 0) {
+            apiKeyGate.classList.add('hidden');
+            appMainWrapper.classList.remove('locked');
+        }
+        renderKeyList();
+
+        // --- TAB & MOBILE NAVIGATION LOGIC ---
+        const tabProductPhotography = document.getElementById('tab-product-photography');
+        const tabVirtualTryOn = document.getElementById('tab-virtual-try-on');
+        const tabFashionPose = document.getElementById('tab-fashion-pose');
+        const tabCombineText = document.getElementById('tab-combine-text');
+        const tabCampaignStrategy = document.getElementById('tab-campaign-strategy');
+        const contentProductPhotography = document.getElementById('content-product-photography');
+        const contentVirtualTryOn = document.getElementById('content-virtual-try-on');
+        const contentFashionPose = document.getElementById('content-fashion-pose');
+        const contentCombineText = document.getElementById('content-combine-text');
+        const contentCampaignStrategy = document.getElementById('content-campaign-strategy');
+        
+        const mobileNavProductPhotography = document.getElementById('mobile-nav-product-photography');
+        const mobileNavVirtualTryOn = document.getElementById('mobile-nav-virtual-try-on');
+        const mobileNavFashionPose = document.getElementById('mobile-nav-fashion-pose');
+        const mobileNavCombineText = document.getElementById('mobile-nav-combine-text');
+        const mobileNavCampaignStrategy = document.getElementById('mobile-nav-campaign-strategy');
+        
+        function switchTab(tabName) {
+            const tabs = {
+                'product': { btn: tabProductPhotography, mobileBtn: mobileNavProductPhotography, content: contentProductPhotography },
+                'vto': { btn: tabVirtualTryOn, mobileBtn: mobileNavVirtualTryOn, content: contentVirtualTryOn },
+                'fashion': { btn: tabFashionPose, mobileBtn: mobileNavFashionPose, content: contentFashionPose },
+                'combine-text': { btn: tabCombineText, mobileBtn: mobileNavCombineText, content: contentCombineText },
+                'campaign': { btn: tabCampaignStrategy, mobileBtn: mobileNavCampaignStrategy, content: contentCampaignStrategy },
+            };
+
+            for (const key in tabs) {
+                const isActive = key === tabName;
+                tabs[key].content.classList.toggle('hidden', !isActive);
+                tabs[key].mobileBtn.classList.toggle('active', isActive);
+                tabs[key].btn.classList.toggle('bg-blue-500', isActive);
+                tabs[key].btn.classList.toggle('text-white', isActive);
+                tabs[key].btn.classList.toggle('text-gray-600', !isActive);
+                tabs[key].btn.classList.toggle('hover:bg-gray-100', !isActive);
+            }
+        }
+
+        tabProductPhotography.addEventListener('click', () => switchTab('product'));
+        tabVirtualTryOn.addEventListener('click', () => switchTab('vto'));
+        tabFashionPose.addEventListener('click', () => switchTab('fashion'));
+        tabCombineText.addEventListener('click', () => switchTab('combine-text'));
+        tabCampaignStrategy.addEventListener('click', () => switchTab('campaign'));
+        mobileNavProductPhotography.addEventListener('click', () => switchTab('product'));
+        mobileNavVirtualTryOn.addEventListener('click', () => switchTab('vto'));
+        mobileNavFashionPose.addEventListener('click', () => switchTab('fashion'));
+        mobileNavCombineText.addEventListener('click', () => switchTab('combine-text'));
+        mobileNavCampaignStrategy.addEventListener('click', () => switchTab('campaign'));
+
+        // --- PRODUCT PHOTOGRAPHY LOGIC ---
+        const imageInput = document.getElementById('image-input');
+        const imageUploadArea = document.getElementById('image-upload-area');
+        const imagePreviewContainer = document.getElementById('image-preview-container');
+        const imagePreview = document.getElementById('image-preview');
+        const removeImageBtn = document.getElementById('remove-image-btn');
+        const modelImageInput = document.getElementById('model-image-input');
+        const modelImageUploadArea = document.getElementById('model-image-upload-area');
+        const modelImagePreviewContainer = document.getElementById('model-image-preview-container');
+        const modelImagePreview = document.getElementById('model-image-preview');
+        const removeModelImageBtn = document.getElementById('remove-model-image-btn');
+        const productDescInput = document.getElementById('product-desc-input');
+        const generateBtn = document.getElementById('generate-btn');
+        const bRollGrid = document.getElementById('b-roll-grid');
+        const generateDescBtn = document.getElementById('generate-desc-btn');
+        const universalModal = document.getElementById('universal-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalBody = document.getElementById('modal-body');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+
+        let uploadedImageBase64 = null;
+        let imageMimeType = null;
+        let uploadedModelImageBase64 = null;
+        let modelImageMimeType = null;
+        
+        function updateButtonState() {
+            generateBtn.disabled = !uploadedImageBase64 || !productDescInput.value.trim();
+            generateDescBtn.disabled = !uploadedImageBase64;
+        }
+
+        function setupImageUpload(input, uploadArea, previewContainer, previewImg, removeBtn, onUpload, buttonUpdater) {
+            input.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        previewImg.src = e.target.result;
+                        const parts = e.target.result.split(',');
+                        const mimeType = parts[0].match(/:(.*?);/)[1];
+                        const base64 = parts[1];
+                        onUpload(base64, mimeType, e.target.result);
+                        uploadArea.classList.add('hidden');
+                        previewContainer.classList.remove('hidden');
+                        if(buttonUpdater) buttonUpdater();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            removeBtn.addEventListener('click', () => {
+                onUpload(null, null, null);
+                input.value = '';
+                uploadArea.classList.remove('hidden');
+                previewContainer.classList.add('hidden');
+                if(buttonUpdater) buttonUpdater();
+            });
+        }
+
+        setupImageUpload(imageInput, imageUploadArea, imagePreviewContainer, imagePreview, removeImageBtn, (base64, mime) => {
+            uploadedImageBase64 = base64;
+            imageMimeType = mime;
+        }, updateButtonState);
+
+        setupImageUpload(modelImageInput, modelImageUploadArea, modelImagePreviewContainer, modelImagePreview, removeModelImageBtn, (base64, mime) => {
+            uploadedModelImageBase64 = base64;
+            modelImageMimeType = mime;
+        }, updateButtonState);
+
+        productDescInput.addEventListener('input', updateButtonState);
+        
+        const createInitialPlaceholders = (gridElement) => {
+            if (!gridElement) return;
+            gridElement.innerHTML = '';
+            for(let i = 1; i <= 6; i++) {
+                const card = document.createElement('div');
+                card.className = 'b-roll-card card p-4 flex flex-col justify-between animate-pulse';
+                card.innerHTML = '<div><div class="h-6 bg-gray-200 rounded w-3/4 mb-4"></div></div><div class="mt-4 aspect-square bg-gray-300 rounded-md flex items-center justify-center"></div>';
+                gridElement.appendChild(card);
+            }
+        };
+
+        window.addEventListener('load', () => createInitialPlaceholders(bRollGrid));
+        
+        generateBtn.addEventListener('click', async () => {
+            if (!uploadedImageBase64) return;
+            generateBtn.disabled = true;
+            generateBtn.innerHTML = '<div class="loader"></div><span class="ml-2">Menganalisa...</span>';
+            bRollGrid.innerHTML = '<div class="col-span-1 sm:col-span-2 xl:col-span-3 text-center py-10"><div class="loader inline-block"></div><p class="mt-4 text-gray-500">AI sedang menganalisis produk dan membuat ide pose...</p></div>';
+            try {
+                const bRollIdeas = await analyzeAndGetPrompts();
+                generateBtn.innerHTML = '<div class="loader"></div><span class="ml-2">Membuat Visual...</span>';
+                createDynamicCards(bRollGrid, bRollIdeas);
+                const generationPromises = bRollIdeas.map((idea, index) => generateSingleBroll(index + 1, idea.title, idea.prompt));
+                await Promise.allSettled(generationPromises);
+            } catch (error) {
+                console.error("Error during generation process:", error);
+                bRollGrid.innerHTML = '<div class="col-span-1 sm:col-span-2 xl:col-span-3 text-center py-10 text-red-600"><p>Terjadi kesalahan saat menganalisis produk: ' + error.message + '</p></div>';
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.innerHTML = '<span>Buat 6 Pose Produk</span>';
+            }
+        });
+
+        async function analyzeAndGetPrompts() {
+            const { url: apiUrl, usedKey } = getTextApiUrl();
+            const systemPrompt = 'You are a professional product photographer\'s AI assistant with a specialization in elegant and cinematic commercial photography. Your task is to analyze a product from an image and description, and optionally a model\'s photo. A user may also provide a specific photo theme. You MUST strictly adhere to the user\'s theme if provided. Generate 6 distinct, creative, and professional \'poses\' or \'shots\'. If a model\'s photo is provided, you MUST incorporate the model naturally interacting with or presenting the product. For each shot, provide a short, descriptive title (in Indonesian) and a detailed prompt for an AI image generator. The prompt must be in English and designed to create a high-quality, realistic, elegant, and cinematic product photo. Emphasize elements like dramatic lighting, soft focus, shallow depth of field, sophisticated composition, and a high-end commercial aesthetic in the prompts you generate, all while respecting the user\'s custom theme. Respond ONLY with a valid JSON array of 6 objects.';
+            const theme = document.getElementById('photo-theme-input').value.trim();
+            let userQuery = 'Analyze this product. Product Description: "' + productDescInput.value.trim() + '"';
+            if (theme) { userQuery += '\nPhoto Theme: "' + theme + '"'; }
+            const parts = [{ text: userQuery }, { inlineData: { mimeType: imageMimeType, data: uploadedImageBase64 } }];
+            if (uploadedModelImageBase64) { parts.push({ inlineData: { mimeType: modelImageMimeType, data: uploadedModelImageBase64 } }); }
+            const payload = { contents: [{ parts: parts }], systemInstruction: { parts: [{ text: systemPrompt }] }, generationConfig: { responseMimeType: "application/json", responseSchema: { type: "ARRAY", items: { type: "OBJECT", properties: { "title": { "type": "STRING" }, "prompt": { "type": "STRING" } }, required: ["title", "prompt"] } } } };
+            const response = await apiFetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }, usedKey);
+            if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error?.message || 'HTTP error! status: ' + response.status); }
+            const result = await response.json();
+            const jsonText = result.candidates[0].content.parts[0].text;
+            return JSON.parse(jsonText);
+        }
+
+        async function generateSingleBroll(id, title, prompt) {
+            const card = document.getElementById('card-' + id);
+            if (!card) return;
+            const outputContainer = card.querySelector('.aspect-video, .aspect-square');
+            try {
+                const { url: apiUrl, usedKey } = getImageApiUrl();
+                const finalPrompt = prompt + ', elegant, cinematic, professional product photography, dramatic lighting, 8k, photorealistic';
+                const parts = [{ text: finalPrompt }, { inlineData: { mimeType: imageMimeType, data: uploadedImageBase64 } }];
+                if (uploadedModelImageBase64) { parts.push({ inlineData: { mimeType: modelImageMimeType, data: uploadedModelImageBase64 } }); }
+                const payload = { contents: [{ parts: parts }], generationConfig: { responseModalities: ['IMAGE'] }, };
+                const response = await apiFetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }, usedKey);
+                if (!response.ok) throw new Error('API error: ' + response.statusText);
+                const result = await response.json();
+                const base64Data = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+                if (base64Data) {
+                    const imageUrl = 'data:image/png;base64,' + base64Data;
+                    const safeTitle = title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                    outputContainer.innerHTML = '<div class="relative w-full h-full group"><img src="' + imageUrl + '" class="w-full h-full object-cover rounded-md" alt="' + title + '"><div class="absolute bottom-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"><button onclick="handleVideoPromptClick(\'' + imageUrl + '\', \'' + title + '\')" class="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700" title="✨ Buat Prompt Video"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm3 2h6v4H7V5zm8 8H5v-2h10v2z" clip-rule="evenodd" /></svg></button><button onclick="handleCaptionClick(\'' + imageUrl + '\', \'' + title + '\')" class="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700" title="✨ Buat Caption"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg></button><a href="' + imageUrl + '" download="content_model_' + id + '_' + safeTitle + '.png" class="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700" title="Unduh Gambar"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg></a></div></div>';
+                } else { throw new Error("Respon tidak valid dari API."); }
+            } catch (error) {
+                console.error('Error for card ' + id + ':', error);
+                outputContainer.innerHTML = '<div class="text-xs text-red-600 p-2 text-center">Gagal memuat visual.</div>';
+            }
+        }
+        
+        const createDynamicCards = (grid, prompts) => {
+            grid.innerHTML = '';
+            prompts.forEach((p, index) => {
+                const card = document.createElement('div');
+                card.id = 'card-' + (index + 1);
+                card.className = 'b-roll-card card p-4 flex flex-col justify-between';
+                card.innerHTML = '<div><h3 class="text-lg font-semibold text-gray-900 mb-4">' + p.title + '</h3></div> <div class="aspect-square bg-gray-200 rounded-md flex items-center justify-center"><div class="loader"></div></div>';
+                grid.appendChild(card);
+            });
+        };
+
+        generateDescBtn.addEventListener('click', async () => {
+            const originalButtonText = generateDescBtn.innerHTML;
+            generateDescBtn.innerHTML = '<div class="loader" style="width:16px;height:16px;border-width:2px;"></div>';
+            generateDescBtn.disabled = true;
+            try {
+                const { url: apiUrl, usedKey } = getTextApiUrl();
+                const systemPrompt = 'You are a professional copywriter. Analyze the product in the image and write a concise, compelling, and SEO-friendly product description in Indonesian. Highlight its key features and potential benefits for customers. Keep it under 500 characters.';
+                const payload = { contents: [{ parts: [ { text: "Buatkan deskripsi produk untuk gambar ini." }, { inlineData: { mimeType: imageMimeType, data: uploadedImageBase64 } } ] }], systemInstruction: { parts: [{ text: systemPrompt }] } };
+                const response = await apiFetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }, usedKey);
+                if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error?.message || 'HTTP error! status: ' + response.status); }
+                const result = await response.json();
+                const description = result.candidates[0].content.parts[0].text;
+                productDescInput.value = description.trim();
+                updateButtonState();
+            } catch(error) {
+                console.error("Error generating description:", error);
+                productDescInput.value = "Gagal membuat deskripsi. Coba lagi.";
+            } finally {
+                generateDescBtn.innerHTML = originalButtonText;
+                generateDescBtn.disabled = false;
+            }
+        });
+        
+        closeModalBtn.addEventListener('click', () => universalModal.classList.remove('visible'));
+        universalModal.addEventListener('click', (e) => {
+            if (e.target === universalModal) { universalModal.classList.remove('visible'); }
+        });
+        
+        function showModal(title, content) {
+            modalTitle.innerText = title;
+            modalBody.innerHTML = content;
+            universalModal.classList.add('visible');
+        }
+
+        function copyToClipboard(text, buttonElement) {
+            const tempTextarea = document.createElement('textarea');
+            tempTextarea.value = text;
+            document.body.appendChild(tempTextarea);
+            tempTextarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempTextarea);
+            const originalText = buttonElement.innerText;
+            buttonElement.innerText = 'Berhasil Disalin!';
+            setTimeout(() => { buttonElement.innerText = originalText; }, 2000);
+        }
+
+        async function handleCaptionClick(imageUrl, title) {
+            showModal('✨ Caption Media Sosial', '<div class="flex flex-col items-center gap-4"><div class="loader"></div> <p class="text-gray-500">AI sedang meracik caption...</p></div>');
+            try {
+                const imgParts = imageUrl.split(',');
+                const mimeType = imgParts[0].match(/:(.*?);/)[1];
+                const base64Data = imgParts[1];
+                const { url: apiUrl, usedKey } = getTextApiUrl();
+                const systemPrompt = 'You are a creative social media manager. Based on the product photo, description, and theme, write an engaging Instagram caption in Indonesian. It should be appealing, concise, and end with 3-5 relevant hashtags.';
+                const userQuery = 'Product Description: "' + productDescInput.value.trim() + '"\nPhoto Theme: "' + title + '"';
+                const payload = { contents: [{ parts: [ { text: userQuery }, { inlineData: { mimeType: mimeType, data: base64Data } } ] }], systemInstruction: { parts: [{ text: systemPrompt }] } };
+                const response = await apiFetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }, usedKey);
+                if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error?.message || 'HTTP error! status: ' + response.status); }
+                const result = await response.json();
+                const caption = result.candidates[0].content.parts[0].text;
+                const content = '<div id="modal-text-content" class="whitespace-pre-wrap bg-gray-100 p-4 rounded-lg text-gray-700 mb-4">' + caption.trim() + '</div><button id="copy-modal-btn" class="w-full btn-primary font-bold py-2 px-4 rounded-lg flex items-center justify-center">Salin Caption</button>';
+                showModal('✨ Caption Media Sosial', content);
+                document.getElementById('copy-modal-btn').addEventListener('click', (e) => {
+                    const text = document.getElementById('modal-text-content').innerText;
+                    copyToClipboard(text, e.currentTarget);
+                });
+            } catch (error) {
+                console.error("Error generating caption:", error);
+                showModal('Error', '<p class="text-red-600">Gagal membuat caption. Silakan coba lagi.</p>');
+            }
+        }
+
+        async function handleVideoPromptClick(imageUrl, title) {
+            showModal('✨ Prompt Image-to-Video', '<div class="flex flex-col items-center gap-4"><div class="loader"></div> <p class="text-gray-500">AI sedang menganalisa gerakan...</p></div>');
+            try {
+                const imgParts = imageUrl.split(',');
+                const mimeType = imgParts[0].match(/:(.*?);/)[1];
+                const base64Data = imgParts[1];
+                const { url: apiUrl, usedKey } = getTextApiUrl();
+                const systemPrompt = 'You are an AI video generation expert. Analyze the provided image, its theme, and the product description. Your task is to generate a concise image-to-video prompt in English. The prompt must strictly follow the formula: "subject + what it\'s doing (action) + background + camera movement". Infer the most logical and visually appealing motion from the static image for the \'action\' part. Then, add a suitable \'camera movement\' to make the shot more cinematic (e.g., \'slow zoom in\', \'panning from left to right\', \'dolly shot forward\'). Be creative and focus on creating a dynamic, cinematic shot.';
+                const userQuery = 'Product Description: "' + productDescInput.value.trim() + '"\nPhoto Theme: "' + title + '"';
+                const payload = { contents: [{ parts: [ { text: userQuery }, { inlineData: { mimeType: mimeType, data: base64Data } } ] }], systemInstruction: { parts: [{ text: systemPrompt }] } };
+                const response = await apiFetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }, usedKey);
+                if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error?.message || 'HTTP error! status: ' + response.status); }
+                const result = await response.json();
+                const prompt = result.candidates[0].content.parts[0].text;
+                const content = '<div id="modal-text-content" class="whitespace-pre-wrap bg-gray-100 p-4 rounded-lg text-gray-700 mb-4 font-mono">' + prompt.trim() + '</div><button id="copy-modal-btn" class="w-full btn-primary font-bold py-2 px-4 rounded-lg flex items-center justify-center">Salin Prompt</button>';
+                showModal('✨ Prompt Image-to-Video', content);
+                 document.getElementById('copy-modal-btn').addEventListener('click', (e) => {
+                    const text = document.getElementById('modal-text-content').innerText;
+                    copyToClipboard(text, e.currentTarget);
+                });
+            } catch (error) {
+                console.error("Error generating video prompt:", error);
+                showModal('Error', '<p class="text-red-600">Gagal membuat prompt video. Silakan coba lagi.</p>');
+            }
+        }
+
+        // --- UNIVERSAL IMAGE UPLOADER FOR VTO, SF, and VG ---
+        function setupGenericImageUploader(uploadBox, input, preview, placeholder, dataStoreCallback, buttonUpdater) {
+            const openFileDialog = () => input.click();
+            uploadBox.addEventListener('click', openFileDialog);
+            ['dragover', 'drop', 'dragleave'].forEach(eventName => uploadBox.addEventListener(eventName, e => e.preventDefault()));
+            uploadBox.addEventListener('dragover', () => uploadBox.classList.add('dragging'));
+            uploadBox.addEventListener('dragleave', () => uploadBox.classList.remove('dragging'));
+            uploadBox.addEventListener('drop', (e) => {
+                uploadBox.classList.remove('dragging');
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('image/')) handleGenericFile(file, preview, placeholder, dataStoreCallback, buttonUpdater);
+            });
+            input.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) handleGenericFile(file, preview, placeholder, dataStoreCallback, buttonUpdater);
+            });
+        }
+
+        function handleGenericFile(file, preview, placeholder, callback, buttonUpdater) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                preview.src = e.target.result;
+                preview.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+                callback({ mimeType: file.type, base64: e.target.result.split(',')[1] });
+                if (buttonUpdater) buttonUpdater();
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        // --- VIRTUAL TRY ON LOGIC ---
+        const vtoProductUploadBox = document.getElementById('vto-product-upload-box');
+        const vtoProductInput = document.getElementById('vto-product-input');
+        const vtoProductPreview = document.getElementById('vto-product-preview');
+        const vtoProductPlaceholder = document.getElementById('vto-product-placeholder');
+        const vtoModelUploadBox = document.getElementById('vto-model-upload-box');
+        const vtoModelInput = document.getElementById('vto-model-input');
+        const vtoModelPreview = document.getElementById('vto-model-preview');
+        const vtoModelPlaceholder = document.getElementById('vto-model-placeholder');
+        const vtoGenerateBtn = document.getElementById('vto-generate-btn');
+        const vtoStatusMessage = document.getElementById('vto-status-message');
+        const vtoOutputPlaceholder = document.getElementById('vto-output-placeholder');
+        const vtoLoader = document.getElementById('vto-loader');
+        const vtoResultImage = document.getElementById('vto-result-image');
+        const vtoOutputControls = document.getElementById('vto-output-controls');
+        const vtoImageDimensions = document.getElementById('vto-image-dimensions');
+        const vtoDownloadBtn = document.getElementById('vto-download-btn');
+        
+        let vtoProductData = null;
+        let vtoModelData = null;
+
+        setupGenericImageUploader(vtoProductUploadBox, vtoProductInput, vtoProductPreview, vtoProductPlaceholder, data => vtoProductData = data);
+        setupGenericImageUploader(vtoModelUploadBox, vtoModelInput, vtoModelPreview, vtoModelPlaceholder, data => vtoModelData = data);
+        
+        async function generateVTOImage(prompt, product, model, retries, delay) {
+            retries = retries || 3;
+            delay = delay || 1000;
+            const { url: apiUrl, usedKey } = getImageApiUrl();
+            const payload = { contents: [{ parts: [ { text: prompt }, { inlineData: { mimeType: product.mimeType, data: product.base64 } }, { inlineData: { mimeType: model.mimeType, data: model.base64 } } ] }], generationConfig: { responseModalities: ['IMAGE'] } };
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await apiFetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }, usedKey);
+                    if (!response.ok) { const error = await response.json(); throw new Error('API Error: ' + (error.error?.message || response.statusText)); }
+                    const result = await response.json();
+                    const base64Data = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+                    if (!base64Data) throw new Error("Tidak ada data gambar yang diterima dari AI.");
+                    return 'data:image/png;base64,' + base64Data;
+                } catch (error) {
+                    console.error('Attempt ' + (i + 1) + ' failed:', error);
+                    if (i === retries - 1) throw error;
+                    await new Promise(res => setTimeout(res, delay * Math.pow(2, i)));
+                }
+            }
+        }
+
+        vtoGenerateBtn.addEventListener('click', async () => {
+            if (!vtoProductData || !vtoModelData) {
+                vtoStatusMessage.textContent = 'Harap unggah foto produk dan model terlebih dahulu.';
+                return;
+            }
+            vtoStatusMessage.textContent = '';
+            vtoGenerateBtn.disabled = true;
+            vtoGenerateBtn.textContent = 'Memproses...';
+            vtoOutputPlaceholder.classList.add('hidden');
+            vtoResultImage.classList.add('hidden');
+            vtoOutputControls.classList.add('hidden');
+            vtoLoader.classList.remove('hidden');
+            const prompt = 'Dengan menggunakan foto produk dan foto model yang tersedia, buatlah sebuah gambar fotorealistis baru di mana model tersebut sedang mengenakan atau menggunakan produk tersebut. Pastikan hasilnya berkualitas tinggi dan terlihat seperti sesi pemotretan profesional. Pertahankan penampilan model dan detail produk.';
+            try {
+                const imageUrl = await generateVTOImage(prompt, vtoProductData, vtoModelData);
+                const img = new Image();
+                img.onload = function() {
+                    vtoImageDimensions.textContent = this.naturalWidth + 'x' + this.naturalHeight + 'px';
+                    vtoResultImage.src = imageUrl;
+                    vtoDownloadBtn.href = imageUrl;
+                    vtoResultImage.classList.remove('hidden');
+                    vtoOutputControls.classList.remove('hidden');
+                };
+                img.src = imageUrl;
+            } catch (error) {
+                console.error('Gagal generate gambar:', error);
+                vtoStatusMessage.textContent = 'Maaf, terjadi kesalahan saat generate gambar. Coba lagi.';
+                vtoOutputPlaceholder.classList.remove('hidden');
+            } finally {
+                vtoLoader.classList.add('hidden');
+                vtoGenerateBtn.disabled = false;
+                vtoGenerateBtn.textContent = 'Generate Gambar';
+            }
+        });
+
+        // --- FASHION POSE LOGIC ---
+        const fpUploadArea = document.getElementById('fp-uploadArea');
+        const fpImageUpload = document.getElementById('fp-imageUpload');
+        const fpPreviewContainer = document.getElementById('fp-previewContainer');
+        const fpImagePreview = document.getElementById('fp-imagePreview');
+        const fpFileName = document.getElementById('fp-fileName');
+        const fpPoseInput = document.getElementById('fp-poseInput');
+        const fpGenerateBtn = document.getElementById('fp-generateBtn');
+        const fpResultsContainer = document.getElementById('fp-resultsContainer');
+        const fpResultsGrid = document.getElementById('fp-resultsGrid');
+        const fpErrorContainer = document.getElementById('fp-errorContainer');
+        const fpErrorMessage = document.getElementById('fp-errorMessage');
+
+        let fpUploadedFileAsDataUrl = null;
+        let isGenerating = false;
+
+        fpUploadArea.addEventListener('dragover', (e) => { e.preventDefault(); fpUploadArea.classList.add('border-blue-500', 'bg-gray-50'); });
+        fpUploadArea.addEventListener('dragleave', () => fpUploadArea.classList.remove('border-blue-500', 'bg-gray-50'));
+        fpUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fpUploadArea.classList.remove('border-blue-500', 'bg-gray-50');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fpImageUpload.files = files;
+                fpHandleFileSelect({ target: fpImageUpload });
+            }
+        });
+        fpImageUpload.addEventListener('change', fpHandleFileSelect);
+        fpPoseInput.addEventListener('input', fpUpdateGenerateButton);
+        fpGenerateBtn.addEventListener('click', fpRunImageGeneration);
+
+        function fpUpdateGenerateButton() {
+            const hasImage = !!fpUploadedFileAsDataUrl;
+            const hasPoseText = fpPoseInput.value.trim().length > 0;
+            fpGenerateBtn.disabled = !hasImage || !hasPoseText || isGenerating;
+        }
+
+        function fpShowError(message) {
+            fpErrorMessage.textContent = message;
+            fpErrorContainer.classList.remove('hidden');
+        }
+
+        function fpHideError() { fpErrorContainer.classList.add('hidden'); }
+
+        function fpHandleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                fpHideError();
+                fpResultsContainer.classList.add('hidden');
+                fpResultsGrid.innerHTML = '';
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    fpUploadedFileAsDataUrl = event.target.result;
+                    fpImagePreview.src = fpUploadedFileAsDataUrl;
+                    fpUpdateGenerateButton();
+                };
+                reader.readAsDataURL(file);
+                fpFileName.textContent = file.name;
+                fpPreviewContainer.classList.remove('hidden');
+            }
+        }
+        
+        async function fpRunImageGeneration() {
+            if (!fpUploadedFileAsDataUrl || !fpPoseInput.value.trim()) { fpShowError("Silakan unggah gambar dan tulis pose yang diinginkan."); return; }
+            
+            isGenerating = true;
+            fpUpdateGenerateButton();
+            fpHideError();
+            fpResultsContainer.classList.remove('hidden');
+            fpResultsContainer.querySelector('h2').textContent = "AI sedang bekerja, mohon tunggu...";
+            fpResultsGrid.innerHTML = '<div id="fp-main-loader" class="col-span-full text-center p-8"><div class="card-loader mx-auto"></div><p class="mt-4 text-gray-500">Membuat pose...</p></div>';
+            
+            const base64Data = fpUploadedFileAsDataUrl.split(',')[1];
+            const mimeType = fpUploadedFileAsDataUrl.split(',')[0].split(':')[1].split(';')[0];
+            const poseText = fpPoseInput.value.trim();
+
+            try {
+                const generatedImageBase64 = await fpGenerateImageWithAI(base64Data, mimeType, poseText);
+                const imageUrl = 'data:image/png;base64,' + generatedImageBase64;
+                fpResultsGrid.innerHTML = '';
+                fpUpdateCardWithResult('fp-generated-card', imageUrl, poseText);
+            } catch (err) {
+                console.error("Gagal membuat pose:", err);
+                fpResultsGrid.innerHTML = '<div class="col-span-full text-center p-8 text-red-600"><i data-lucide="alert-triangle" class="w-10 h-10 mx-auto mb-2"></i><p>Gagal membuat pose: ' + err.message + '</p></div>';
+            } finally {
+                fpResultsContainer.querySelector('h2').textContent = "Hasil Pose";
+                isGenerating = false;
+                fpUpdateGenerateButton();
+                lucide.createIcons();
+            }
+        }
+
+        async function fpGenerateImageWithAI(base64ImageData, mimeType, prompt) {
+            const { url: apiUrl, usedKey } = getImageApiUrl();
+            const payload = { contents: [{ parts: [ { text: 'Berdasarkan gambar model yang disediakan, hasilkan gambar baru dengan model yang melakukan pose fesyen sesuai deskripsi berikut: \'' + prompt + '\'. Jangan mengubah pakaian, latar belakang, atau properti apa pun. Hanya ubah pose model.' }, { inlineData: { mimeType: mimeType, data: base64ImageData } } ] }], generationConfig: { responseModalities: ['IMAGE'] } };
+            const response = await apiFetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }, usedKey);
+            if (!response.ok) { const errorBody = await response.json(); throw new Error('API Error: ' + response.status + ' ' + response.statusText + ' - ' + errorBody.error.message); }
+            const result = await response.json();
+            if (!result.candidates || result.candidates.length === 0) { if (result.promptFeedback && result.promptFeedback.blockReason) { throw new Error('Generasi diblokir: ' + result.promptFeedback.blockReason + '.'); } throw new Error("API tidak memberikan hasil. Respons kosong."); }
+            const candidate = result.candidates[0];
+            const base64Result = candidate.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+            if (!base64Result) { if (candidate.finishReason && candidate.finishReason !== "STOP") { throw new Error('Generasi gagal: ' + candidate.finishReason + '.'); } throw new Error("Tidak ada data gambar yang diterima dari API."); }
+            return base64Result;
+        }
+        
+        function fpUpdateCardWithResult(cardId, imageUrl, poseText) {
+            const card = document.createElement('div');
+            card.id = cardId;
+            card.className = "bg-white rounded-lg overflow-hidden border border-gray-200 transition-all";
+            card.innerHTML = '<img src="' + imageUrl + '" alt="Generated ' + poseText + '" class="w-full h-auto object-cover" style="aspect-ratio:3/4;"><div class="p-3 text-center"><a href="' + imageUrl + '" download="' + poseText.replace(/\s/g, '_') + '.png" class="inline-flex items-center bg-blue-500 text-white text-sm font-semibold py-2 px-4 rounded-md hover:bg-blue-600 transition-colors"><i data-lucide="download" class="w-4 h-4 mr-2"></i>Unduh</a></div>';
+            fpResultsGrid.appendChild(card);
+            lucide.createIcons();
+        }
+
+        // --- COMBINE TEXT LOGIC ---
+        const ctImageInput = document.getElementById('ct-image-input');
+        const ctImageUploadArea = document.getElementById('ct-image-upload-area');
+        const ctImagePreviewContainer = document.getElementById('ct-image-preview-container');
+        const ctImagePreview = document.getElementById('ct-image-preview');
+        const ctRemoveImageBtn = document.getElementById('ct-remove-image-btn');
+        const ctDescInput = document.getElementById('ct-desc-input');
+        const ctGenerateDescBtn = document.getElementById('ct-generate-desc-btn');
+        const ctHeadlineInput = document.getElementById('ct-headline-input');
+        const ctGenerateHeadlineBtn = document.getElementById('ct-generate-headline-btn');
+        const ctAdThemeInput = document.getElementById('ct-ad-theme-input');
+        const ctGenerateBtn = document.getElementById('ct-generate-btn');
+        const ctResultsGrid = document.getElementById('ct-results-grid');
+
+        let ctUploadedImageData = { base64: null, mimeType: null };
+
+        function ctUpdateGenerateButtonState() {
+            const hasImage = !!ctUploadedImageData.base64;
+            const hasDesc = ctDescInput.value.trim().length > 0;
+            const hasHeadline = ctHeadlineInput.value.trim().length > 0;
+            ctGenerateBtn.disabled = !hasImage || !hasDesc || !hasHeadline;
+            ctGenerateDescBtn.disabled = !hasImage;
+            ctGenerateHeadlineBtn.disabled = !hasImage || !hasDesc;
+        }
+
+        setupImageUpload(ctImageInput, ctImageUploadArea, ctImagePreviewContainer, ctImagePreview, ctRemoveImageBtn, (base64, mime) => {
+            ctUploadedImageData = { base64, mimeType: mime };
+        }, ctUpdateGenerateButtonState);
+        
+        ctDescInput.addEventListener('input', ctUpdateGenerateButtonState);
+        ctHeadlineInput.addEventListener('input', ctUpdateGenerateButtonState);
+        
+        window.addEventListener('load', () => createInitialPlaceholders(ctResultsGrid));
+
+        ctGenerateDescBtn.addEventListener('click', async () => {
+            const originalButtonText = ctGenerateDescBtn.innerHTML;
+            ctGenerateDescBtn.innerHTML = '<div class="loader" style="width:16px;height:16px;border-width:2px;"></div>';
+            ctGenerateDescBtn.disabled = true;
+            try {
+                const { url: apiUrl, usedKey } = getTextApiUrl();
+                const systemPrompt = 'You are a professional copywriter. Analyze the product in the image and write a concise, compelling, and SEO-friendly product description in Indonesian. Highlight its key features and potential benefits for customers. Keep it under 250 characters.';
+                const payload = { contents: [{ parts: [ { text: "Buatkan deskripsi iklan singkat untuk produk pada gambar ini." }, { inlineData: { mimeType: ctUploadedImageData.mimeType, data: ctUploadedImageData.base64 } } ] }], systemInstruction: { parts: [{ text: systemPrompt }] } };
+                const response = await apiFetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }, usedKey);
+                if (!response.ok) { throw new Error('HTTP error! status: ' + response.status); }
+                const result = await response.json();
+                const description = result.candidates[0].content.parts[0].text;
+                ctDescInput.value = description.trim();
+                ctUpdateGenerateButtonState();
+            } catch(error) {
+                console.error("Error generating ad description:", error);
+                ctDescInput.value = "Gagal membuat deskripsi. Coba lagi.";
+            } finally {
+                ctGenerateDescBtn.innerHTML = originalButtonText;
+                ctUpdateGenerateButtonState();
+            }
+        });
+
+        ctGenerateHeadlineBtn.addEventListener('click', async () => {
+            const originalButtonText = ctGenerateHeadlineBtn.innerHTML;
+            ctGenerateHeadlineBtn.innerHTML = '<div class="loader" style="width:16px;height:16px;border-width:2px;"></div>';
+            ctGenerateHeadlineBtn.disabled = true;
+            try {
+                const { url: apiUrl, usedKey } = getTextApiUrl();
+                const systemPrompt = 'You are a master copywriter specializing in short, high-impact headlines. Based on the product image and description, generate one catchy headline (hook) in Indonesian. It must be very short (max 5 words) and attention-grabbing.';
+                const userQuery = 'Buatkan satu headline menarik untuk produk ini. Deskripsi: "' + ctDescInput.value.trim() + '"';
+                const payload = { contents: [{ parts: [ { text: userQuery }, { inlineData: { mimeType: ctUploadedImageData.mimeType, data: ctUploadedImageData.base64 } } ] }], systemInstruction: { parts: [{ text: systemPrompt }] } };
+                const response = await apiFetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }, usedKey);
+                if (!response.ok) { throw new Error('HTTP error! status: ' + response.status); }
+                const result = await response.json();
+                const headline = result.candidates[0].content.parts[0].text;
+                ctHeadlineInput.value = headline.trim().replace(/["*]/g, '');
+                ctUpdateGenerateButtonState();
+            } catch(error) {
+                console.error("Error generating ad headline:", error);
+                ctHeadlineInput.value = "Gagal membuat headline.";
+            } finally {
+                ctGenerateHeadlineBtn.innerHTML = originalButtonText;
+                ctUpdateGenerateButtonState();
+            }
+        });
+        
+        ctGenerateBtn.addEventListener('click', async () => {
+            if (!ctUploadedImageData.base64) return;
+            ctGenerateBtn.disabled = true;
+            ctGenerateBtn.innerHTML = '<div class="loader"></div><span class="ml-2">Menganalisa...</span>';
+            ctResultsGrid.innerHTML = '<div class="col-span-1 sm:col-span-2 xl:col-span-3 text-center py-10"><div class="loader inline-block"></div><p class="mt-4 text-gray-500">AI sedang merancang variasi iklan...</p></div>';
+            
+            try {
+                const adVariations = await getAdVariations();
+                ctGenerateBtn.innerHTML = '<div class="loader"></div><span class="ml-2">Membuat Visual...</span>';
+                createDynamicCards(ctResultsGrid, adVariations);
+                const generationPromises = adVariations.map((idea, index) => generateSingleAdImage(index + 1, idea.title, idea.prompt));
+                await Promise.allSettled(generationPromises);
+            } catch (error) {
+                console.error("Error during ad generation process:", error);
+                ctResultsGrid.innerHTML = '<div class="col-span-1 sm:col-span-2 xl:col-span-3 text-center py-10 text-red-600"><p>Terjadi kesalahan saat membuat variasi iklan: ' + error.message + '</p></div>';
+            } finally {
+                ctGenerateBtn.disabled = false;
+                ctGenerateBtn.innerHTML = '<span>Buat 6 Variasi Iklan</span>';
+            }
+        });
+        
+        async function getAdVariations() {
+            const { url: apiUrl, usedKey } = getTextApiUrl();
+            const systemPrompt = 'You are an expert AI graphic designer for social media ads. Analyze the product image, headline, description, and optional theme. Generate 6 distinct ad variations. For each, provide a JSON object with a \'title\' (short name in Indonesian) and a \'prompt\' (detailed English prompt for an image generation AI). The prompt MUST instruct the AI to place the provided headline and a key phrase from the description onto the original image in a specific, visually appealing way. Describe text placement (e.g., \'top-center\', \'bottom-left\'), font style (e.g., \'bold sans-serif\', \'elegant script\'), color scheme, and any subtle background enhancements (e.g., \'add a soft glow\'). Ensure text is legible and complements the image. The original product in the image must not be altered. Respond ONLY with a valid JSON array of 6 objects.';
+            const theme = ctAdThemeInput.value.trim();
+            let userQuery = 'Headline: "' + ctHeadlineInput.value.trim() + '"\nDescription: "' + ctDescInput.value.trim() + '"';
+            if (theme) { userQuery += '\nAd Theme: "' + theme + '"'; }
+            
+            const parts = [{ text: userQuery }, { inlineData: { mimeType: ctUploadedImageData.mimeType, data: ctUploadedImageData.base64 } }];
+            const payload = { contents: [{ parts: parts }], systemInstruction: { parts: [{ text: systemPrompt }] }, generationConfig: { responseMimeType: "application/json", responseSchema: { type: "ARRAY", items: { type: "OBJECT", properties: { "title": { "type": "STRING" }, "prompt": { "type": "STRING" } }, required: ["title", "prompt"] } } } };
+            
+            const response = await apiFetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }, usedKey);
+            if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error?.message || 'HTTP error! status: ' + response.status); }
+            const result = await response.json();
+            const jsonText = result.candidates[0].content.parts[0].text;
+            return JSON.parse(jsonText);
+        }
+
+        async function generateSingleAdImage(id, title, prompt, newHeadline, newDescription) {
+            const card = document.getElementById('card-' + id);
+            if (!card) return;
+            const outputContainer = card.querySelector('.aspect-square');
+             try {
+                const { url: apiUrl, usedKey } = getImageApiUrl();
+                
+                const headlineToUse = newHeadline !== undefined && newHeadline !== null ? newHeadline : ctHeadlineInput.value.trim();
+                const descriptionToUse = newDescription !== undefined && newDescription !== null ? newDescription : ctDescInput.value.trim();
+
+                const finalPrompt = prompt + '. The headline text to add is: "' + headlineToUse + '". The description text to add is: "' + descriptionToUse + '". Ensure the text is clearly visible and beautifully integrated.';
+                const parts = [{ text: finalPrompt }, { inlineData: { mimeType: ctUploadedImageData.mimeType, data: ctUploadedImageData.base64 } }];
+                
+                const payload = { contents: [{ parts: parts }], generationConfig: { responseModalities: ['IMAGE'] }, };
+                const response = await apiFetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }, usedKey);
+                if (!response.ok) throw new Error('API error: ' + response.statusText);
+                const result = await response.json();
+                const base64Data = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+
+                if (base64Data) {
+                    const imageUrl = 'data:image/png;base64,' + base64Data;
+                    const safeTitle = title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                    const escapedPrompt = prompt.replace(/'/g, "\\'");
+                    
+                    outputContainer.innerHTML = '<div class="relative w-full h-full group"><img src="' + imageUrl + '" class="w-full h-full object-cover rounded-md" alt="' + title + '"><div class="absolute bottom-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"><button onclick="handleAdEditClick(\'' + id + '\', \'' + title + '\', \'' + escapedPrompt + '\', \'' + imageUrl + '\')" class="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700" title="Edit & Buat Ulang"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg></button><a href="' + imageUrl + '" download="iklan_' + id + '_' + safeTitle + '.png" class="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700" title="Unduh Gambar"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg></a></div></div>';
+                } else { throw new Error("Respon tidak valid dari API."); }
+            } catch (error) {
+                console.error('Error for ad card ' + id + ':', error);
+                outputContainer.innerHTML = '<div class="text-xs text-red-600 p-2 text-center">Gagal memuat visual.</div>';
+            }
+        }
+
+        function handleAdEditClick(id, title, prompt, imageUrl) {
+            const modalContent = '<div class="space-y-4"><img src="' + imageUrl + '" class="rounded-lg w-full mb-4"><div><label for="modal-headline" class="block text-sm font-medium text-gray-700 mb-1">Headline</label><textarea id="modal-headline" rows="2" class="w-full p-2 bg-gray-100 border border-gray-300 rounded-lg">' + ctHeadlineInput.value.trim() + '</textarea></div><div><label for="modal-desc" class="block text-sm font-medium text-gray-700 mb-1">Deskripsi</label><textarea id="modal-desc" rows="3" class="w-full p-2 bg-gray-100 border border-gray-300 rounded-lg">' + ctDescInput.value.trim() + '</textarea></div><button id="regenerate-ad-btn" class="w-full btn-primary font-bold py-2 px-4 rounded-lg flex items-center justify-center">Buat Ulang Gambar</button><div id="modal-loader" class="hidden text-center"><div class="loader inline-block"></div></div></div>';
+            showModal('Edit Iklan: ' + title, modalContent);
+
+            document.getElementById('regenerate-ad-btn').addEventListener('click', async () => {
+                const newHeadline = document.getElementById('modal-headline').value;
+                const newDescription = document.getElementById('modal-desc').value;
+                const card = document.getElementById('card-' + id);
+                const outputContainer = card.querySelector('.aspect-square');
+                
+                document.getElementById('regenerate-ad-btn').classList.add('hidden');
+                document.getElementById('modal-loader').classList.remove('hidden');
+                outputContainer.innerHTML = '<div class="loader"></div>';
+                
+                await generateSingleAdImage(id, title, prompt, newHeadline, newDescription);
+                universalModal.classList.remove('visible');
+            });
+        }
+
+        // --- CAMPAIGN STRATEGY LOGIC ---
+        const csImageInput = document.getElementById('cs-image-input');
+        const csImageUploadArea = document.getElementById('cs-image-upload-area');
+        const csImagePreviewContainer = document.getElementById('cs-image-preview-container');
+        const csImagePreview = document.getElementById('cs-image-preview');
+        const csRemoveImageBtn = document.getElementById('cs-remove-image-btn');
+        const csDescInput = document.getElementById('cs-desc-input');
+        const csGenerateBtn = document.getElementById('cs-generate-btn');
+        const csResultsContainer = document.getElementById('cs-results-container');
+        
+        let csUploadedImageData = { base64: null, mimeType: null };
+
+        function csUpdateGenerateButtonState() {
+            csGenerateBtn.disabled = !csUploadedImageData.base64 || !csDescInput.value.trim();
+        }
+
+        setupImageUpload(csImageInput, csImageUploadArea, csImagePreviewContainer, csImagePreview, csRemoveImageBtn, (base64, mime) => {
+            csUploadedImageData = { base64, mimeType: mime };
+        }, csUpdateGenerateButtonState);
+
+        csDescInput.addEventListener('input', csUpdateGenerateButtonState);
+
+        csGenerateBtn.addEventListener('click', async () => {
+            csGenerateBtn.disabled = true;
+            csGenerateBtn.innerHTML = '<div class="loader"></div><span class="ml-2">Menganalisa...</span>';
+            csResultsContainer.innerHTML = '<div class="text-center py-20 px-6"><div class="generic-loader mx-auto"></div><p class="mt-4 text-gray-600">AI sedang menyusun strategi pemasaran Anda...</p></div>';
+            
+            try {
+                const strategy = await generateCampaignStrategy();
+                renderCampaignResults(strategy);
+            } catch(error) {
+                console.error("Error generating campaign strategy:", error);
+                csResultsContainer.innerHTML = '<div class="text-center py-20 px-6 text-red-600 bg-red-50 rounded-lg border border-red-200"><i data-lucide="alert-triangle" class="w-12 h-12 mx-auto mb-4"></i><h3 class="text-xl font-semibold">Gagal Membuat Strategi</h3><p class="mt-2">Terjadi kesalahan: ' + error.message + '. Silakan coba lagi.</p></div>';
+                lucide.createIcons();
+            } finally {
+                csGenerateBtn.disabled = false;
+                csGenerateBtn.innerHTML = '<span>✨ Buat Strategi Kampanye</span>';
+            }
+        });
+        
+        async function generateCampaignStrategy() {
+            const { url: apiUrl, usedKey } = getTextApiUrl();
+            const systemPrompt = 'You are a senior marketing strategist AI. Your task is to create a comprehensive mini-marketing campaign strategy based on a product image and description provided in Indonesian. Provide a detailed target audience persona, a catchy campaign slogan, three distinct social media post ideas (for Instagram, Twitter, and Facebook), and a short, persuasive email marketing draft. All text outputs must be in Indonesian. Respond ONLY with a valid JSON object matching the provided schema.';
+            
+            const schema = {
+                type: "OBJECT",
+                properties: {
+                    persona: {
+                        type: "OBJECT",
+                        properties: {
+                            name: { type: "STRING" },
+                            age: { type: "STRING" },
+                            occupation: { type: "STRING" },
+                            interests: { type: "ARRAY", items: { type: "STRING" } },
+                            painPoints: { type: "ARRAY", items: { type: "STRING" } }
+                        }
+                    },
+                    slogan: { type: "STRING" },
+                    socialMediaPosts: {
+                        type: "ARRAY",
+                        items: {
+                            type: "OBJECT",
+                            properties: {
+                                platform: { type: "STRING" },
+                                content: { type: "STRING" },
+                                hashtags: { type: "STRING" }
+                            }
+                        }
+                    },
+                    emailDraft: {
+                        type: "OBJECT",
+                        properties: {
+                            subject: { type: "STRING" },
+                            body: { type: "STRING" }
+                        }
+                    }
+                }
+            };
+            
+            const userQuery = 'Buatkan strategi kampanye untuk produk ini: ' + csDescInput.value.trim();
+            const parts = [{ text: userQuery }, { inlineData: { mimeType: csUploadedImageData.mimeType, data: csUploadedImageData.base64 } }];
+            const payload = { contents: [{ parts: parts }], systemInstruction: { parts: [{ text: systemPrompt }] }, generationConfig: { responseMimeType: "application/json", responseSchema: schema } };
+
+            const response = await apiFetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }, usedKey);
+            if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error?.message || 'HTTP error! status: ' + response.status); }
+            const result = await response.json();
+            const jsonText = result.candidates[0].content.parts[0].text;
+            return JSON.parse(jsonText);
+        }
+
+        function renderCampaignResults(data) {
+            csResultsContainer.innerHTML = '';
+
+            // 1. Slogan Card
+            const sloganCard = document.createElement('div');
+            sloganCard.className = 'card p-6';
+            sloganCard.innerHTML = '<div class="flex items-center mb-4"><i data-lucide="megaphone" class="w-8 h-8 text-blue-500 mr-4"></i><div><h3 class="text-xs text-gray-500 uppercase font-semibold tracking-wider">Slogan Kampanye</h3><p class="text-2xl font-bold text-gray-900">"' + data.slogan + '"</p></div></div>';
+            csResultsContainer.appendChild(sloganCard);
+
+            // 2. Persona Card
+            const persona = data.persona;
+            const interestsHtml = persona.interests.map(function(item) { return '<span class="bg-gray-200 text-gray-700 text-xs font-medium mr-2 mb-2 px-2 py-1 rounded-full">' + item + '</span>'; }).join('');
+            const painPointsHtml = persona.painPoints.map(function(item) { return '<li class="flex items-start"><i data-lucide="x-circle" class="w-4 h-4 text-red-500 mr-2 mt-1 flex-shrink-0"></i><span>' + item + '</span></li>'; }).join('');
+
+            const personaCard = document.createElement('div');
+            personaCard.className = 'card p-6';
+            personaCard.innerHTML = '<div class="flex items-center mb-4"><i data-lucide="user-check" class="w-6 h-6 text-blue-500 mr-3"></i><h3 class="text-xl font-bold text-gray-900">Target Audiens: ' + persona.name + '</h3></div><div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700"><div><p><strong>Umur:</strong> ' + persona.age + '</p><p><strong>Pekerjaan:</strong> ' + persona.occupation + '</p></div><div><h4 class="font-semibold mb-2">Minat & Hobi:</h4><div class="flex flex-wrap">' + interestsHtml + '</div></div><div class="md:col-span-2"><h4 class="font-semibold mb-2">Tantangan (Pain Points):</h4><ul class="space-y-1">' + painPointsHtml + '</ul></div></div>';
+            csResultsContainer.appendChild(personaCard);
+
+            // 3. Social Media Card
+            const socialPostsHtml = data.socialMediaPosts.map(function(post) {
+                let icon;
+                if (post.platform.toLowerCase() === 'instagram') icon = 'instagram';
+                else if (post.platform.toLowerCase() === 'twitter') icon = 'twitter';
+                else icon = 'facebook';
+                return '<div class="p-4 bg-gray-50 rounded-lg border"><div class="flex items-center font-bold mb-2"><i data-lucide="' + icon + '" class="w-5 h-5 mr-2"></i>' + post.platform + '</div><p class="text-gray-800 whitespace-pre-wrap">' + post.content + '</p><p class="text-sm text-blue-600 mt-3">' + post.hashtags + '</p></div>';
+            }).join('');
+            const socialCard = document.createElement('div');
+            socialCard.className = 'card p-6';
+            socialCard.innerHTML = '<div class="flex items-center mb-4"><i data-lucide="share-2" class="w-6 h-6 text-blue-500 mr-3"></i><h3 class="text-xl font-bold text-gray-900">Ide Konten Media Sosial</h3></div><div class="space-y-4">' + socialPostsHtml + '</div>';
+            csResultsContainer.appendChild(socialCard);
+
+            // 4. Email Card
+            const emailCard = document.createElement('div');
+            emailCard.className = 'card p-6';
+            emailCard.innerHTML = '<div class="flex items-center mb-4"><i data-lucide="mail" class="w-6 h-6 text-blue-500 mr-3"></i><h3 class="text-xl font-bold text-gray-900">Draf Email Pemasaran</h3></div><div class="border rounded-lg overflow-hidden"><div class="p-3 bg-gray-100 border-b"><strong>Subjek:</strong> ' + data.emailDraft.subject + '</div><div class="p-4 text-gray-800 whitespace-pre-wrap">' + data.emailDraft.body + '</div></div>';
+            csResultsContainer.appendChild(emailCard);
+
+            lucide.createIcons();
+        }
+
+        // --- INITIALIZE ON LOAD ---
+        window.addEventListener('load', () => {
+            lucide.createIcons();
+            switchTab('product');
+        });
+    </script>
+</body>
+</html>
