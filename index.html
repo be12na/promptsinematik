@@ -49,11 +49,51 @@
     textarea, select, button {
       font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     }
+
+    /* Navigation */
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .nav-link {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.5rem 1.25rem;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+    .nav-link-default {
+      background-color: #ffffff;
+      color: #374151;
+      border: 1px solid #D1D5DB;
+    }
+    .nav-link-default:hover {
+      background-color: #EFF6FF;
+      border-color: #1D4ED8;
+      color: #1D4ED8;
+    }
+    .nav-link-active {
+      background-color: #1D4ED8;
+      color: #ffffff;
+      border: 1px solid #1D4ED8;
+    }
   </style>
 </head>
 
 <body class="font-sans p-4 md:p-8">
   <div class="container mx-auto">
+
+    <!-- Navigation Menu -->
+    <nav class="mb-6">
+      <div class="nav-container flex flex-wrap items-center justify-center gap-3">
+        <a href="index.html" class="nav-link nav-link-active">🎬 Prompt Generator</a>
+        <a href="grok.html" class="nav-link nav-link-default">🤖 Grok Generator</a>
+      </div>
+    </nav>
+
     <header class="text-center mb-8">
       <h1 class="text-4xl font-extrabold text-gray-900 mb-2">🎬 Generator Prompt Video AI</h1>
       <p class="text-xl text-gray-600">Buat prompt sinematik yang disesuaikan untuk Sora, Veo, atau Grok.</p>

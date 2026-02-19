@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Grok Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #111827;
+        }
+        /* Navigation */
+        .nav-container {
+            max-width: 80rem;
+            margin: 0 auto;
+        }
+        .nav-link {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1.25rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .nav-link-default {
+            background-color: #ffffff;
+            color: #374151;
+            border: 1px solid #D1D5DB;
+        }
+        .nav-link-default:hover {
+            background-color: #F3F4F6;
+            border-color: #9333ea;
+            color: #9333ea;
+        }
+        .nav-link-active {
+            background-color: #9333ea;
+            color: #ffffff;
+            border: 1px solid #9333ea;
+        }
+        /* Tailwind v3 feature polyfills */
+        .shadow-2xl {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        .rounded-2xl {
+            border-radius: 1rem;
+        }
+        .style-card {
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+        }
+        .style-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(168, 85, 247, 0.05), 0 4px 6px -2px rgba(168, 85, 247, 0.05);
+        }
+        .style-card.selected {
+            border-color: #a855f7;
+            box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
+            transform: translateY(-2px);
+            background-color: #f5f3ff;
+        }
+        .scene-count-btn {
+            transition: all 0.2s;
+        }
+        .scene-count-btn:hover {
+            transform: translateY(-2px);
+            border-color: #a855f7;
+        }
+        .scene-count-btn.selected {
+            border-color: #a855f7;
+            background-color: #f5f3ff;
+            color: #6b21a8;
+            box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
+        }
+        .loader {
+            border-top-color: #a855f7;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .toast {
+            animation: fadeInOut 5s ease-in-out forwards;
+        }
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; transform: translateY(20px); }
+            10%, 90% { opacity: 1; transform: translateY(0); }
+        }
+        .file-upload-area {
+            border: 2px dashed #9ca3af;
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+        .file-upload-area:hover {
+            border-color: #a855f7;
+            background-color: rgba(168, 85, 247, 0.05);
+        }
+        .file-preview {
+            max-height: 120px;
+        }
+        #generated-script {
+            resize: vertical;
+            min-height: 150px;
+            line-height: 1.6;
+        }
+        #generated-script:focus {
+            outline: none;
+            border-color: #9333ea;
+            box-shadow: 0 0 0 1px #9333ea;
+        }
+        .form-ratio-btn {
+            transition: all 0.2s;
+        }
+        .form-ratio-btn.selected {
+            border-color: #a855f7;
+            background-color: #f5f3ff;
+            color: #6b21a8;
+        }
+        .model-toggle-btn {
+             transition: all 0.2s;
+        }
+        .model-toggle-btn.selected {
+            background-color: #a855f7;
+            color: white;
+            border-color: #a855f7;
+        }
+        .library-tab.selected {
+            border-color: #a855f7;
+            background-color: #ffffff;
+        }
+        .asset-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .asset-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 10px rgba(168, 85, 247, 0.1);
+        }
+        /* Extra color utilities not in Tailwind v2 */
+        .bg-purple-50 { background-color: #f5f3ff; }
+        .text-purple-600 { color: #9333ea; }
+        .text-purple-700 { color: #7e22ce; }
+        .bg-purple-100 { background-color: #ede9fe; }
+        .bg-purple-600 { background-color: #9333ea; }
+        .bg-purple-700 { background-color: #7e22ce; }
+        .hover\:bg-purple-700:hover { background-color: #7e22ce; }
+        .focus\:ring-purple-500:focus { box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.5); }
+        .focus\:border-purple-500:focus { border-color: #a855f7; }
+        .focus\:ring-purple-300:focus { box-shadow: 0 0 0 3px rgba(196, 181, 253, 0.5); }
+        .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); }
+        .shadow-md { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); }
+        .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body class="antialiased">
+    <div id="app-container" class="min-h-screen p-4 sm:p-6 lg:p-8">
+
+        <!-- Navigation Menu -->
+        <nav class="mb-6">
+            <div class="nav-container flex flex-wrap items-center justify-center gap-3">
+                <a href="index.html" class="nav-link nav-link-default">🎬 Prompt Generator</a>
+                <a href="grok.html" class="nav-link nav-link-active">🤖 Grok Generator</a>
+            </div>
+        </nav>
+
+        <header class="text-center mb-10">
+            <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">Video Grok <span class="text-purple-600">Generator</span></h1>
+            <p class="mt-2 text-lg text-gray-600">AI GENERATOR VIDEO UNTUK JUALAN (FAST MODE)</p>
+        </header>
+
+        <!-- Tata letak 3 kolom -->
+        <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Kolom Input (Kolom 1) -->
+            <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-2xl border border-gray-200">
+                <section id="style-selection">
+                    <h2 class="text-xl font-semibold mb-1 text-gray-900">Langkah 1: Pilih Gaya Konten</h2>
+                    <p class="text-gray-600 mb-5 text-sm">Pilih template untuk menentukan alur cerita visual.</p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="style-card bg-white p-4 rounded-lg border-2 border-gray-300 cursor-pointer text-center" data-style="story-telling">
+                            <h3 class="font-semibold text-sm">Story Telling</h3>
+                        </div>
+                        <div class="style-card bg-white p-4 rounded-lg border-2 border-gray-300 cursor-pointer text-center" data-style="promosi-produk">
+                            <h3 class="font-semibold text-sm">Promosi Produk</h3>
+                        </div>
+                    </div>
+
+                    <!-- Pilihan Jumlah Scene -->
+                    <div id="scene-count-container" class="mt-6 hidden border-t border-gray-200 pt-6">
+                        <h3 class="text-sm font-semibold text-gray-900 mb-3">Pilih Durasi Video (Jumlah Scene):</h3>
+                        <div class="grid grid-cols-3 gap-3">
+                            <button class="scene-count-btn border-2 border-gray-200 rounded-lg p-3 text-center cursor-pointer bg-white" data-count="5">
+                                <span class="block font-bold text-gray-800 text-lg">5</span>
+                                <span class="block text-xs text-gray-500">~30 Detik</span>
+                            </button>
+                            <button class="scene-count-btn border-2 border-gray-200 rounded-lg p-3 text-center cursor-pointer bg-white" data-count="8">
+                                <span class="block font-bold text-gray-800 text-lg">8</span>
+                                <span class="block text-xs text-gray-500">~48 Detik</span>
+                            </button>
+                            <button class="scene-count-btn border-2 border-gray-200 rounded-lg p-3 text-center cursor-pointer bg-white" data-count="10">
+                                <span class="block font-bold text-gray-800 text-lg">10</span>
+                                <span class="block text-xs text-gray-500">~60 Detik</span>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="input-form" class="mt-8 hidden border-t border-gray-200 pt-6">
+                    <h2 class="text-xl font-semibold mb-5 text-gray-900">Langkah 2: Detail Konten</h2>
+                    
+                    <div class="space-y-8">
+                        
+                        <!-- 1. Produk Utama -->
+                        <div id="section-product">
+                            <h3 class="text-md font-bold text-gray-800 mb-3 flex items-center gap-2">
+                                <span class="bg-purple-100 text-purple-700 w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span> 
+                                Produk Utama
+                            </h3>
+                            <div class="space-y-4 pl-8 border-l-2 border-gray-100 ml-3">
+                            </div>
+                        </div>
+
+                        <!-- 2. Model -->
+                        <div id="section-model">
+                            <h3 class="text-md font-bold text-gray-800 mb-3 flex items-center gap-2">
+                                <span class="bg-purple-100 text-purple-700 w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span> 
+                                Model
+                            </h3>
+                            <div class="pl-8 border-l-2 border-gray-100 ml-3">
+                                <div class="flex bg-gray-100 p-1 rounded-lg mb-4">
+                                    <button class="model-toggle-btn flex-1 py-2 text-sm font-medium rounded-md selected" data-mode="upload">Upload Foto</button>
+                                    <button class="model-toggle-btn flex-1 py-2 text-sm font-medium rounded-md text-gray-600 hover:text-gray-900" data-mode="generate">Generator AI</button>
+                                </div>
+                                
+                                <div id="model-upload-panel">
+                                </div>
+                                <div id="model-generate-panel" class="hidden space-y-3">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi Model AI</label>
+                                        <textarea id="modelDescription" rows="3" class="w-full rounded-md border-gray-300 bg-gray-50 text-sm p-2 border" placeholder="Cth: Wanita Asia usia 20an, rambut hitam panjang lurus, wajah ramah, kulit cerah, make up natural."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3. Pengaturan Iklan -->
+                        <div id="section-ads">
+                            <h3 class="text-md font-bold text-gray-800 mb-3 flex items-center gap-2">
+                                <span class="bg-purple-100 text-purple-700 w-6 h-6 rounded-full flex items-center justify-center text-xs">3</span> 
+                                Pengaturan Iklan
+                            </h3>
+                            <div class="pl-8 border-l-2 border-gray-100 ml-3 space-y-5">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Rasio Video</label>
+                                    <div class="flex gap-2">
+                                        <button class="form-ratio-btn w-full border border-gray-300 rounded-lg p-2 text-center text-sm hover:border-purple-500 selected" data-ratio="9:16">
+                                            <span class="font-bold block">9:16</span>
+                                            <span class="text-xs text-gray-500">TikTok/Reels/Shorts</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Tipe Konten (Selling)</label>
+                                    <select id="sellingType" class="block w-full rounded-md border-gray-300 bg-white border p-2 text-sm shadow-sm focus:border-purple-500 focus:ring-purple-500">
+                                        <option value="soft-selling">Soft Selling (Edukasi/Halus)</option>
+                                        <option value="hard-selling">Hard Selling (Promo Langsung)</option>
+                                        <option value="story-selling">Story Selling (Bercerita/Drama)</option>
+                                        <option value="review-selling">Testimoni/Review Jujur</option>
+                                        <option value="cinematic-aesthetic">Cinematic Aesthetic (Visual Menawan)</option>
+                                        <option value="asmr-sensory">ASMR / Sensory Focus (Tekstur/Suara)</option>
+                                        <option value="educational-tips">Educational / Tips & Trik</option>
+                                        <option value="behind-the-scene">Behind The Scene (Proses/Dapur)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <button id="generate-btn" class="mt-8 w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 flex items-center justify-center shadow-lg">
+                        Generate Konten (Cepat)
+                    </button>
+                </section>
+
+                <section id="asset-library-launcher" class="mt-8 pt-6 border-t border-gray-200">
+                     <h2 class="text-xl font-semibold mb-1 text-gray-900">Koleksi Aset Saya</h2>
+                     <button id="open-library-btn" class="w-full mt-3 bg-white hover:bg-gray-50 border border-gray-300 text-gray-800 font-bold py-3 px-4 rounded-lg transition-all duration-300 flex items-center justify-center">
+                         Buka Pustaka Aset
+                     </button>
+                 </section>
+            </div>
+
+            <!-- Kolom Hasil Visual (Kolom 2) -->
+            <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-2xl border border-gray-200">
+                <h2 class="text-xl font-semibold mb-5 text-gray-900">Visual Storyboard</h2>
+                <div id="placeholder-output" class="text-center text-gray-500 py-16">
+                    <p>Gambar visual iklan akan muncul di sini.</p>
+                </div>
+                <div id="visual-section" class="hidden space-y-8">
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900">Alur Cerita Visual</h3>
+                        <div id="image-grid" class="grid grid-cols-2 gap-4"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kolom Naskah & Audio (Kolom 3) -->
+            <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-2xl border border-gray-200">
+                <h2 class="text-xl font-semibold mb-5 text-gray-900">Script & Audio</h2>
+                <div id="script-placeholder-output" class="text-center text-gray-500 py-16">
+                    <p>Teks naskah dan suara narator akan muncul di sini.</p>
+                </div>
+                
+                <!-- CONTAINER GABUNGAN NASKAH & AUDIO -->
+                <div id="script-audio-container" class="hidden space-y-6">
+                    
+                    <div>
+                        <label for="generated-script" class="block text-sm font-medium text-gray-700 mb-2">Edit Naskah Video</label>
+                        <textarea id="generated-script" rows="8" class="w-full rounded-lg border-gray-300 bg-gray-50 p-3 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent transition shadow-sm" placeholder="Naskah akan muncul di sini..."></textarea>
+                    </div>
+
+                    <div class="pt-6 border-t border-gray-100">
+                        <label class="block text-sm font-medium text-gray-700 mb-3">Pengaturan Suara (TTS)</label>
+                        <div class="flex flex-col sm:flex-row items-center gap-3">
+                            <div class="w-full sm:w-1/2">
+                                <select id="tts-voice" class="w-full bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block p-2.5 shadow-sm"></select>
+                            </div>
+                            <button id="tts-btn" class="w-full sm:w-1/2 text-white bg-purple-600 hover:bg-purple-700 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex items-center justify-center transition-all shadow-md">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                                Buat Audio
+                            </button>
+                        </div>
+
+                        <div id="audio-player-controls" class="hidden mt-4 bg-gray-50 rounded-lg p-3 border border-gray-200 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <button id="play-audio-btn" class="w-10 h-10 flex items-center justify-center bg-white rounded-full text-purple-600 shadow hover:text-purple-700 hover:shadow-md transition-all">
+                                    <svg id="play-icon" class="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/></svg>
+                                    <svg id="pause-icon" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                                </button>
+                                <div>
+                                    <p class="text-sm font-semibold text-gray-800">Preview Audio</p>
+                                    <p class="text-xs text-gray-500">Siap diputar</p>
+                                </div>
+                            </div>
+                            <button id="download-audio-btn" class="text-gray-500 hover:text-purple-600 transition p-2 rounded-full hover:bg-gray-100" title="Unduh Audio">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            </button>
+                            <audio id="audio-player" class="hidden"></audio>
+                        </div>
+                    </div>
+
+                     <div id="download-section" class="text-center pt-6 flex flex-col sm:flex-row justify-center gap-3 border-t border-gray-100 mt-4">
+                        <button id="download-btn" class="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2.5 px-4 rounded-lg transition text-sm flex items-center justify-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            Unduh Gambar
+                        </button>
+                        <button id="download-prompts-btn" class="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2.5 px-4 rounded-lg transition text-sm flex items-center justify-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            Unduh Teks
+                        </button>
+                    </div>
+                </div>
+
+                     <!-- External Tools -->
+                    <section id="external-tools" class="mt-8 pt-6 border-t border-gray-200">
+                        <h2 class="text-xl font-semibold mb-1 text-gray-900">Generate Video</h2>
+                        <div class="space-y-4">
+                            <a href="https://grok.com/" target="_blank" rel="noopener noreferrer" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 flex items-center justify-center shadow-lg">
+                                Buka Grok (X.ai)
+                            </a>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="hidden fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center z-50">
+        <div class="text-center">
+            <div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-24 w-24 mb-4 mx-auto"></div>
+            <p id="loading-message" class="text-gray-900 text-xl">AI sedang bekerja...</p>
+        </div>
+    </div>
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50"></div>
+    
+    <!-- Modal Pustaka Aset -->
+    <div id="library-modal-overlay" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="modal-content bg-white p-6 sm:p-8 rounded-2xl shadow-2xl border border-gray-200 max-w-3xl w-full h-full max-h-screen flex flex-col" style="max-height:80vh;">
+            <div class="flex justify-between items-center mb-5">
+                <h2 class="text-xl font-semibold text-gray-900">Koleksi Aset Saya</h2>
+                <button id="close-library-btn" class="text-gray-500 hover:text-gray-900">&times;</button>
+            </div>
+            <!-- Tabs -->
+            <div id="asset-library-tabs" class="flex border-b border-gray-200 mb-4">
+                <button class="library-tab py-2 px-4 border-b-2 border-transparent text-gray-500 hover:text-gray-900 transition selected" data-asset-type="product">Produk</button>
+                <button class="library-tab py-2 px-4 border-b-2 border-transparent text-gray-500 hover:text-gray-900 transition" data-asset-type="model">Model</button>
+                <button class="library-tab py-2 px-4 border-b-2 border-transparent text-gray-500 hover:text-gray-900 transition" data-asset-type="background">Latar</button>
+            </div>
+            <!-- Konten Pustaka -->
+            <div id="library-content" class="flex-grow overflow-y-auto pr-2">
+                <div id="library-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+                    <div id="library-placeholder" class="text-center text-gray-500 py-16 col-span-full">
+                        <p>Pustaka aset Anda kosong.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Footer Modal -->
+            <div class="mt-6 pt-4 border-t border-gray-200 flex justify-between items-center">
+                <button id="library-upload-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg text-sm">
+                    Unggah Aset Baru
+                </button>
+                <input type="file" id="library-upload-input" class="hidden" accept="image/png, image/jpeg, image/webp">
+                <p class="text-xs text-gray-500">Maks 500KB per aset (untuk disimpan).</p>
+            </div>
+        </div>
+    </div>
+    
+
+<script type="module">
+// --- Impor Firebase ---
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFirestore, collection, addDoc, query, onSnapshot, serverTimestamp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    let selectedStyle = null, uploadedFiles = {}, generatedContent = { masterScene: null, images: [], audio: null, shotPrompts: [] };
+    let selectedAspectRatio = '9:16';
+    let selectedSceneCount = 5; 
+    let modelMode = 'upload';
+
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; 
+    const LIBRARY_MAX_FILE_SIZE = 500 * 1024; 
+    
+    let db, auth, userId, appId;
+    let currentAssetTargetInput = null;
+    let assetUnsubscribe = null;
+    
+    const dom = {
+        styleCards: document.querySelectorAll('.style-card'),
+        sceneCountContainer: document.getElementById('scene-count-container'),
+        sceneCountBtns: document.querySelectorAll('.scene-count-btn'),
+        
+        inputForm: document.getElementById('input-form'),
+        sectionProductContainer: document.querySelector('#section-product .space-y-4'),
+        sectionModelUpload: document.getElementById('model-upload-panel'),
+        sectionModelGenerate: document.getElementById('model-generate-panel'),
+        modelToggleBtns: document.querySelectorAll('.model-toggle-btn'),
+        modelDescription: document.getElementById('modelDescription'),
+        sellingType: document.getElementById('sellingType'),
+        ratioBtns: document.querySelectorAll('.form-ratio-btn'),
+
+        generateBtn: document.getElementById('generate-btn'),
+        loadingOverlay: document.getElementById('loading-overlay'),
+        loadingMessage: document.getElementById('loading-message'),
+        toastContainer: document.getElementById('toast-container'),
+
+        placeholderOutput: document.getElementById('placeholder-output'), 
+        scriptPlaceholderOutput: document.getElementById('script-placeholder-output'),
+        visualSection: document.getElementById('visual-section'),
+        scriptAudioContainer: document.getElementById('script-audio-container'),
+        downloadSection: document.getElementById('download-section'),
+        generatedScriptEl: document.getElementById('generated-script'),
+        ttsBtn: document.getElementById('tts-btn'),
+        ttsVoiceSelect: document.getElementById('tts-voice'),
+        audioPlayer: document.getElementById('audio-player'),
+        audioPlayerControls: document.getElementById('audio-player-controls'),
+        imageGrid: document.getElementById('image-grid'),
+        downloadBtn: document.getElementById('download-btn'),
+        playAudioBtn: document.getElementById('play-audio-btn'),
+        playIcon: document.getElementById('play-icon'),
+        pauseIcon: document.getElementById('pause-icon'),
+        downloadAudioBtn: document.getElementById('download-audio-btn'),
+        downloadPromptsBtn: document.getElementById('download-prompts-btn'), 
+        
+        openLibraryBtn: document.getElementById('open-library-btn'),
+        libraryModalOverlay: document.getElementById('library-modal-overlay'),
+        closeLibraryBtn: document.getElementById('close-library-btn'),
+        libraryTabs: document.getElementById('asset-library-tabs'),
+        libraryContent: document.getElementById('library-content'),
+        libraryGrid: document.getElementById('library-grid'),
+        libraryPlaceholder: document.getElementById('library-placeholder'),
+        libraryUploadBtn: document.getElementById('library-upload-btn'),
+        libraryUploadInput: document.getElementById('library-upload-input'),
+    };
+
+    const API_KEY = ""; 
+    const TEXT_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
+    const IMAGE_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${API_KEY}`;
+    const TTS_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${API_KEY}`;
+
+    const ttsVoices = [
+        { id: 'Puck', name: 'Pria • Enerjik & Fun (Cocok konten promosi)' },
+        { id: 'Orus', name: 'Pria • Tegas & Meyakinkan (Sales / Iklan)' },
+        { id: 'Charon', name: 'Pria • Ramah & Hangat (Edukasi / Narasi ringan)' },
+        { id: 'Fenrir', name: 'Pria • Cepat & Powerful (Hook / Short Ads)' },
+        { id: 'Enceladus', name: 'Pria • Dalam & Dramatis (Trailer / Cinematic)' },
+        { id: 'Umbriel', name: 'Pria • Misterius & Berwibawa (Narator Story)' },
+        { id: 'Aoede', name: 'Wanita • Ceria & Aktif (Promosi / Konten ringan)' },
+        { id: 'Leda', name: 'Wanita • Dewasa & Elegan (Brand / Corporate)' },
+        { id: 'Erinome', name: 'Wanita • Santai & Akrab (UGC / Sosial Media)' },
+        { id: 'Zephyr', name: 'Wanita • Lembut & Tenang (Narasi halus)' },
+        { id: 'Kore', name: 'Wanita • Menenangkan (Relaksasi / Edukasi)' },
+        { id: 'Callirrhoe', name: 'Wanita • Jelas & Profesional (Tutorial / Penjelasan)' }
+    ];
+    
+    const storyFlows = {
+        'story-telling': [
+            { id: 'fisheye', label: 'Fisheye High Angle: Tampilan artistik dari atas.' },
+            { id: 'coolpose', label: 'Normal Angle - Cool Pose: Pose keren dari depan.' }, 
+            { id: 'seated', label: 'Seated Studio Pose: Pose duduk yang stylis.' },
+            { id: 'halfbody', label: 'Half Body Close-Up: Fokus pada detail pakaian bagian atas.' },
+            { id: 'fabric', label: 'Interacting with Fabric: Pose yang menunjukkan tekstur bahan.' }
+        ],
+        'promosi-produk': [
+            { id: 'wide', label: 'Wide Shot: Produk di lingkungannya (misal: di atas meja).' },
+            { id: 'closeup', label: 'Extreme Close-Up: Fokus pada tekstur atau detail terbaik produk.' },
+            { id: 'top-down', label: 'Top-Down / Flatlay: Bidikan lurus dari atas.' },
+            { id: 'dynamic-angle', label: 'Dynamic Angle: Bidikan 45 derajat yang menonjolkan bentuk produk.' },
+            { id: 'hero-shot', label: 'Hero Shot: Bidikan sinematik yang menampilkan produk secara utuh.' }
+        ]
+    };
+
+    const showToast = (message, isError = false) => {
+        const toast = document.createElement('div');
+        toast.className = `toast p-4 rounded-lg shadow-lg text-white ${isError ? 'bg-red-600' : 'bg-green-600'}`;
+        toast.textContent = message;
+        dom.toastContainer.appendChild(toast);
+        setTimeout(() => toast.remove(), 5000);
+    };
+
+    const showLoading = (message) => {
+        dom.loadingMessage.textContent = message;
+        dom.loadingOverlay.classList.remove('hidden');
+    };
+
+    const hideLoading = () => {
+        dom.loadingOverlay.classList.add('hidden');
+    };
+
+    const updateUIForStyle = (style) => {
+        selectedStyle = style;
+        dom.styleCards.forEach(card => card.classList.toggle('selected', card.dataset.style === style));
+        dom.sceneCountBtns.forEach(btn => btn.classList.remove('selected'));
+        selectedSceneCount = 5; 
+
+        dom.sceneCountContainer.classList.remove('hidden');
+        dom.inputForm.classList.add('hidden');
+    };
+
+    const renderInputForm = (style) => {
+        uploadedFiles = {}; 
+        dom.sectionProductContainer.innerHTML = '';
+        dom.sectionModelUpload.innerHTML = '';
+
+        const createFileInput = (id, label, required = false, multiple = false) => {
+            let assetType = id;
+            if (id === 'fashionItems' || id === 'productImage' || id === 'supportingImages') assetType = 'product';
+            if (id === 'modelImage') assetType = 'model';
+            if (id === 'backgroundImage') assetType = 'background';
+            const showChooseButton = !multiple || id === 'supportingImages';
+
+            return `
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">${label}${required ? '<span class="text-red-400">*</span>' : ''}</label>
+                <div class="flex gap-2">
+                    <div id="upload-area-${id}" class="file-upload-area rounded-lg p-4 text-center cursor-pointer flex-grow">
+                        <input type="file" id="${id}" class="hidden" accept="image/*" ${multiple ? 'multiple' : ''}>
+                        <div id="preview-${id}" class="flex justify-center items-center flex-wrap gap-2">
+                            <span class="text-gray-500">Upload File</span>
+                        </div>
+                    </div>
+                    ${showChooseButton ? `
+                    <button id="lib-btn-${id}" data-asset-type="${assetType}" class="choose-from-lib-btn bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 text-sm font-medium py-2 px-3 rounded-lg transition-all duration-300 flex-shrink-0">
+                        Pilih
+                    </button>
+                    ` : ''}
+                </div>
+            </div>`;
+        };
+        const createTextInput = (id, label, placeholder) => `<div><label for="${id}" class="block text-sm font-medium text-gray-700">${label}<span class="text-red-400">*</span></label><textarea id="${id}" rows="2" class="mt-2 block w-full rounded-md bg-gray-50 border-gray-300 text-gray-900 border p-2" placeholder="${placeholder}"></textarea></div>`;
+        
+        let productHtml = '';
+        if (style === 'story-telling') {
+             productHtml += createFileInput('productImage', 'Foto Produk Utama', true);
+             productHtml += createFileInput('backgroundImage', 'Upload Background', true);
+             productHtml += createFileInput('supportingImages', 'Foto Tambahan (Opsional)', false, true);
+        } else {
+             productHtml += createFileInput('productImage', 'Foto Produk Utama', true);
+             productHtml += createFileInput('supportingImages', 'Foto Tambahan (Opsional)', false, true);
+             productHtml += createTextInput('productDescription', 'Deskripsi Produk/Masalah', 'Contoh: Tas trendy tahan air...');
+        }
+        dom.sectionProductContainer.innerHTML = productHtml;
+
+        let modelHtml = createFileInput('modelImage', 'Upload Foto');
+        dom.sectionModelUpload.innerHTML = modelHtml;
+
+        const attachFileListeners = (container) => {
+            container.querySelectorAll('input[type="file"]').forEach(input => {
+                input.addEventListener('change', handleFileSelect);
+                const dropArea = document.getElementById(`upload-area-${input.id}`);
+                if (dropArea) {
+                    dropArea.addEventListener('click', () => input.click());
+                    dropArea.addEventListener('dragover', (e) => { e.preventDefault(); dropArea.classList.add('border-purple-500', 'bg-purple-900/10'); });
+                    dropArea.addEventListener('dragleave', () => { dropArea.classList.remove('border-purple-500', 'bg-purple-900/10'); });
+                    dropArea.addEventListener('drop', (e) => {
+                        e.preventDefault();
+                        dropArea.classList.remove('border-purple-500', 'bg-purple-900/10');
+                        input.files = e.dataTransfer.files;
+                        handleFileSelect({ target: input }); 
+                    });
+                }
+            });
+            container.querySelectorAll('.choose-from-lib-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const inputId = btn.id.replace('lib-btn-', '');
+                    openLibraryModal(inputId, btn.dataset.assetType);
+                });
+            });
+        };
+
+        attachFileListeners(dom.sectionProductContainer);
+        attachFileListeners(dom.sectionModelUpload);
+
+        dom.inputForm.classList.remove('hidden');
+    };
+
+    dom.modelToggleBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            modelMode = btn.dataset.mode;
+            
+            dom.modelToggleBtns.forEach(b => {
+                b.classList.toggle('selected', b.dataset.mode === modelMode);
+                b.classList.toggle('text-gray-600', b.dataset.mode !== modelMode);
+                b.classList.toggle('bg-gray-100', b.dataset.mode !== modelMode);
+            });
+
+            if (modelMode === 'upload') {
+                dom.sectionModelUpload.classList.remove('hidden');
+                dom.sectionModelGenerate.classList.add('hidden');
+            } else {
+                dom.sectionModelUpload.classList.add('hidden');
+                dom.sectionModelGenerate.classList.remove('hidden');
+            }
+        });
+    });
+
+    dom.ratioBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            selectedAspectRatio = btn.dataset.ratio;
+            dom.ratioBtns.forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+        });
+    });
+
+    dom.sceneCountBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            selectedSceneCount = parseInt(btn.dataset.count);
+            dom.sceneCountBtns.forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            if (selectedStyle) {
+                renderInputForm(selectedStyle);
+            }
+        });
+    });
+
+    const handleFileSelect = async (event) => {
+        const input = event.target;
+        const files = input.files;
+        if (!files || files.length === 0) return;
+
+        try {
+            const previewEl = document.getElementById(`preview-${input.id}`);
+            previewEl.innerHTML = '';
+            if (input.multiple) {
+                uploadedFiles[input.id] = [];
+                for (const file of files) {
+                    const dataUrl = await fileToDataURL(file);
+                    uploadedFiles[input.id].push({ name: file.name, type: file.type, base64: dataUrl.split(',')[1] });
+                    previewEl.innerHTML += `<img src="${dataUrl}" class="file-preview rounded-md">`;
+                }
+            } else {
+                const dataUrl = await fileToDataURL(files[0]);
+                uploadedFiles[input.id] = { name: files[0].name, type: files[0].type, base64: dataUrl.split(',')[1] };
+                previewEl.innerHTML = `<img src="${dataUrl}" class="file-preview rounded-md">`;
+            }
+        } catch (error) { showToast(error.message, true); }
+    };
+
+    const fileToDataURL = (file, maxSize = MAX_FILE_SIZE) => new Promise((resolve, reject) => {
+        if (file.size > maxSize) {
+            const limit = (maxSize / 1024 / 1024).toFixed(1);
+            return reject(new Error(`File terlalu besar (maks ${limit}MB).`));
+        }
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
+
+    const cropImageToRatio = (base64Data, targetRatioString) => new Promise((resolve, reject) => {
+        const [targetW, targetH] = targetRatioString.split(':').map(Number);
+        const targetRatio = targetW / targetH;
+        
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const originalRatio = img.width / img.height;
+
+            if (Math.abs(originalRatio - targetRatio) < 0.01) {
+                resolve(base64Data);
+                return;
+            }
+
+            let newWidth, newHeight, startX, startY;
+            if (originalRatio > targetRatio) { 
+                newHeight = img.height;
+                newWidth = newHeight * targetRatio;
+                startX = (img.width - newWidth) / 2;
+                startY = 0;
+            } else { 
+                newWidth = img.width;
+                newHeight = newWidth / targetRatio;
+                startX = 0;
+                startY = (img.height - newHeight) / 2;
+            }
+            canvas.width = newWidth;
+            canvas.height = newHeight;
+            ctx.drawImage(img, startX, startY, newWidth, newHeight, 0, 0, newWidth, newHeight);
+            resolve(canvas.toDataURL('image/png'));
+        };
+        img.onerror = (err) => reject(new Error("Gagal crop gambar."));
+        img.src = base64Data;
+    });
+
+    const apiCall = async (url, payload) => {
+        let response;
+        let delay = 1000;
+        for (let i = 0; i < 5; i++) { 
+            response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (response.ok) break;
+            if (response.status === 429 || response.status >= 500) {
+                await new Promise(res => setTimeout(res, delay));
+                delay *= 2; 
+            } else { break; }
+        }
+        
+        const responseText = await response.text();
+        if (!responseText) throw new Error(`API Error ${response.status}: Empty response (Server busy)`);
+
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (e) {
+            console.error("Non-JSON Response:", responseText);
+            throw new Error(`API Error ${response.status}: Invalid JSON response. Please try again.`);
+        }
+
+        if (!response.ok) throw new Error(`API Error ${response.status}: ${data?.error?.message || JSON.stringify(data)}`);
+        return data;
+    };
+    
+    const extractJSON = (text) => {
+        try {
+            const startIndex = text.indexOf('{');
+            const endIndex = text.lastIndexOf('}');
+            if (startIndex === -1 || endIndex === -1) return null;
+            return JSON.parse(text.substring(startIndex, endIndex + 1));
+        } catch (e) {
+            console.error("JSON Extraction Failed:", e);
+            return null;
+        }
+    };
+
+    const getAnimationPrompt = async (generatedImage) => {
+        if (!generatedImage || !generatedImage.success) return null;
+        
+        const promptText = `
+        Analisis gambar ini dan buatkan prompt video motion (animasi) yang singkat dan efektif untuk tool seperti Runway Gen-2 atau Luma.
+        Format output JSON: {"videoPrompt": "Deskripsi gerakan kamera (misal: Dolly Zoom, Pan Right) dan gerakan subjek (misal: Character smiles, hair blowing). Bahasa Inggris."}
+        `;
+        
+        const base64Clean = generatedImage.base64.split(',')[1];
+        
+        const payload = { 
+            contents: [{ 
+                parts: [
+                    { text: promptText }, 
+                    { inlineData: { mimeType: 'image/png', data: base64Clean } }
+                ] 
+            }],
+             generationConfig: { responseMimeType: "application/json" }
+        };
+        
+        try {
+            const result = await apiCall(TEXT_API_URL, payload);
+            const textResponse = result.candidates[0].content.parts[0].text;
+            const json = extractJSON(textResponse);
+            return json ? json.videoPrompt : "Camera dolly in, subtle motion.";
+        } catch (error) {
+            console.error("Gagal membuat saran animasi:", error);
+            return "Camera slow motion, cinematic lighting.";
+        }
+    };
+
+    const getCreativePlan = async () => {
+        const description = document.getElementById('productDescription')?.value || 'Produk';
+        const isFashion = selectedStyle === 'runway-mode' || selectedStyle === 'story-telling';
+        const sellingMode = dom.sellingType.value; 
+        const storyFlow = storyFlows[selectedStyle] || [];
+        const storyFlowString = JSON.stringify(storyFlow.map(s => s.label));
+
+        let locationInstruction = "Deskripsi satu lokasi/latar yang spesifik dan konsisten.";
+        if (isFashion && uploadedFiles.backgroundImage) {
+            locationInstruction = "Gunakan gambar latar yang diunggah sebagai dasar untuk deskripsi lokasi (photocompositing).";
+        }
+
+        let modelInstruction = "";
+        if (modelMode === 'generate') {
+             const aiDesc = dom.modelDescription.value || "Model profesional";
+             modelInstruction = `Karakter harus DI-GENERATE oleh AI berdasarkan deskripsi ini: "${aiDesc}". JANGAN mengharapkan gambar referensi model. Konsistensi wajah karakter di setiap adegan sangat penting.`;
+        } else {
+             modelInstruction = "Gunakan gambar referensi model yang diunggah (jika ada) untuk menjaga konsistensi wajah.";
+        }
+
+        let toneInstruction = "";
+        if(sellingMode === 'cinematic-aesthetic') toneInstruction = "Gunakan bahasa puitis, elegan, dan fokus pada keindahan visual.";
+        else if(sellingMode === 'asmr-sensory') toneInstruction = "Gunakan bahasa deskriptif tentang suara, tekstur, dan rasa. Tenang dan menghanyutkan.";
+        else if(sellingMode === 'educational-tips') toneInstruction = "Gunakan bahasa informatif, jelas, step-by-step.";
+        else if(sellingMode === 'behind-the-scene') toneInstruction = "Gunakan bahasa santai, jujur, seperti bercerita pada teman tentang proses pembuatan.";
+        else {
+            switch(sellingMode) {
+                case 'hard-selling': toneInstruction = "Gunakan bahasa yang persuasif, mendesak, dan fokus pada promo/call-to-action."; break;
+                case 'soft-selling': toneInstruction = "Gunakan bahasa yang edukatif, ramah, dan informatif."; break;
+                case 'story-selling': toneInstruction = "Gunakan narasi bercerita yang emosional dan relatable."; break;
+                default: toneInstruction = "Gunakan bahasa review yang jujur dan meyakinkan.";
+            }
+        }
+
+        const fashionShowInstruction = `Kembangkan menjadi TEPAT ${selectedSceneCount} prompt gambar. ${modelInstruction} Gaya bahasa naskah: ${toneInstruction}.`;
+
+        const promptText = `
+        Anda adalah sutradara AI Video Craft.
+        INPUT:
+        - Gaya: "${selectedStyle}"
+        - Produk: "${description}"
+        - Tipe Iklan: "${sellingMode}"
+        - Referensi Alur: ${storyFlowString}
+        - Target Scene: ${selectedSceneCount}
+        
+        TUGAS:
+        1. **Master Scene:** Deskripsi detail karakter (sesuai instruksi model), pakaian dasar (konsisten), dan lokasi.
+        2. **Naskah TikTok:** Tulis naskah ${selectedSceneCount * 12} kata dengan tone "${sellingMode}".
+        3. **Prompt Gambar:** ${fashionShowInstruction} Sertakan perintah teknis: 'ultra-realistic, 8k, detailed texture'.
+
+        OUTPUT JSON:
+        {
+          "masterScene": { "character": "...", "outfit": "...", "location": "..." },
+          "tiktokScript": "...",
+          "shotPrompts": [ "Prompt 1...", "..." ] 
+        }`;
+
+        const payload = { contents: [{ parts: [{ text: promptText }] }] };
+        if(uploadedFiles.productImage) payload.contents[0].parts.push({ inlineData: { mimeType: uploadedFiles.productImage.type, data: uploadedFiles.productImage.base64 } });
+        if (uploadedFiles.supportingImages && Array.isArray(uploadedFiles.supportingImages)) {
+            uploadedFiles.supportingImages.forEach(img => payload.contents[0].parts.push({ inlineData: { mimeType: img.type, data: img.base64 } }));
+        }
+        if(modelMode === 'upload' && uploadedFiles.modelImage) {
+            payload.contents[0].parts.push({ inlineData: { mimeType: uploadedFiles.modelImage.type, data: uploadedFiles.modelImage.base64 } });
+        }
+        if(isFashion && uploadedFiles.backgroundImage) payload.contents[0].parts.push({ inlineData: { mimeType: uploadedFiles.backgroundImage.type, data: uploadedFiles.backgroundImage.base64 } });
+
+        const result = await apiCall(TEXT_API_URL, payload);
+        const textResponse = result.candidates[0].content.parts[0].text;
+        
+        const jsonResponse = extractJSON(textResponse);
+        if (!jsonResponse) throw new Error("Gagal membaca rencana kreatif (Format JSON tidak valid).");
+
+        generatedContent.masterScene = jsonResponse.masterScene;
+        generatedContent.masterScene.tiktokScript = jsonResponse.tiktokScript;
+        generatedContent.shotPrompts = jsonResponse.shotPrompts;
+    };
+
+    const generateSingleImage = async (prompt, index, total, fashionItem = null) => {
+        const maxRetries = 3; 
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                const payload = {
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
+                };
+                const parts = payload.contents[0].parts;
+                
+                if (modelMode === 'upload' && uploadedFiles.modelImage) {
+                    parts.push({ inlineData: { mimeType: uploadedFiles.modelImage.type, data: uploadedFiles.modelImage.base64 } });
+                }
+                
+                if (uploadedFiles.productImage) parts.push({ inlineData: { mimeType: uploadedFiles.productImage.type, data: uploadedFiles.productImage.base64 } });
+                
+                const result = await apiCall(IMAGE_API_URL, payload);
+                const imagePart = result.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+                if (!imagePart) throw new Error('No image data.');
+                
+                const originalBase64Data = `data:image/png;base64,${imagePart.inlineData.data}`;
+                const croppedBase64Data = await cropImageToRatio(originalBase64Data, selectedAspectRatio);
+
+                return { base64: croppedBase64Data, success: true, label: `Adegan ${index}` };
+            } catch (error) {
+                console.warn(`Retry ${attempt} failed:`, error);
+                if (attempt === maxRetries) return { base64: null, success: false };
+            }
+        }
+    };
+
+    const startGenerationProcess = async () => {
+        if (!selectedStyle) return showToast('Pilih gaya konten.', true);
+        if (!selectedAspectRatio) return showToast('Pilih rasio video di Pengaturan Iklan.', true);
+        if (modelMode === 'upload' && !uploadedFiles.modelImage && (selectedStyle === 'runway-mode' || selectedStyle === 'story-telling')) {
+             showToast('Untuk mode fashion, sebaiknya unggah model atau gunakan Generator AI.', true);
+        }
+
+        dom.visualSection.classList.add('hidden');
+        if(dom.scriptSection) dom.scriptSection.classList.add('hidden');
+        if(dom.scriptAudioSection) dom.scriptAudioSection.classList.add('hidden');
+        
+        dom.scriptAudioContainer.classList.add('hidden');
+        dom.downloadSection.classList.add('hidden');
+        dom.placeholderOutput.classList.remove('hidden');
+        dom.scriptPlaceholderOutput.classList.remove('hidden');
+        
+        generatedContent = { masterScene: null, images: [], audio: null, shotPrompts: [] };
+        
+        try {
+            showLoading('Menulis Konsep...'); 
+            await getCreativePlan();
+            
+            showLoading('Memulai Pembuatan Gambar Secara Paralel...'); 
+            await generateStoryImages();
+            
+            displayResults();
+        } catch (error) { 
+            showToast(`Gagal: ${error.message}`, true);
+        } finally {
+            hideLoading();
+        }
+    };
+
+    const generateStoryImages = async () => {
+        let prompts = generatedContent.shotPrompts;
+        generatedContent.images = new Array(prompts.length).fill(null);
+        
+        const concurrencyLimit = 3;
+        const results = [];
+        let completedCount = 0;
+
+        const processImage = async (prompt, index) => {
+            const res = await generateSingleImage(prompt, index + 1, prompts.length, null);
+            
+            if(res.success) {
+                res.videoPrompt = await getAnimationPrompt(res); 
+            } else {
+                res.videoPrompt = "Static shot.";
+            }
+            
+            completedCount++;
+            showLoading(`Selesai ${completedCount}/${prompts.length} adegan (High Speed)...`);
+            return { index, data: res };
+        };
+
+        const executing = [];
+        for (let i = 0; i < prompts.length; i++) {
+            const p = processImage(prompts[i], i).then(result => {
+                generatedContent.images[result.index] = result.data; 
+                return result;
+            });
+            results.push(p);
+            
+            if (concurrencyLimit <= prompts.length) {
+                const e = p.then(() => executing.splice(executing.indexOf(e), 1));
+                executing.push(e);
+                if (executing.length >= concurrencyLimit) {
+                    await Promise.race(executing);
+                }
+            }
+        }
+        await Promise.all(results);
+    };
+
+    const regenerateImage = async (index) => {
+        let prompt = generatedContent.shotPrompts[index];
+        const total = generatedContent.shotPrompts.length;
+        
+        showLoading(`Membuat Ulang Gambar ${index + 1}...`); 
+
+        try {
+            const res = await generateSingleImage(prompt, index + 1, total, null);
+            if (res.success) {
+                res.videoPrompt = await getAnimationPrompt(res);
+                generatedContent.images[index] = res;
+                displayResults();
+                showToast(`Adegan ${index + 1} berhasil diperbarui!`);
+            } else {
+                showToast(`Gagal memperbarui adegan ${index + 1}.`, true);
+            }
+        } catch (e) {
+            showToast(`Error: ${e.message}`, true);
+        } finally {
+            hideLoading();
+        }
+    };
+
+    const displayResults = () => {
+        dom.placeholderOutput.classList.add('hidden');
+        dom.scriptPlaceholderOutput.classList.add('hidden');
+        dom.visualSection.classList.remove('hidden');
+        
+        dom.scriptAudioContainer.classList.remove('hidden');
+        dom.downloadSection.classList.remove('hidden');
+
+        dom.generatedScriptEl.value = generatedContent.masterScene?.tiktokScript || "";
+        dom.imageGrid.innerHTML = '';
+        
+        const aspectClass = { "9:16": "aspect-ratio-9-16", "1:1": "aspect-ratio-1-1", "16:9": "aspect-ratio-16-9" }[selectedAspectRatio];
+        
+        generatedContent.images.forEach((img, index) => {
+            if (!img || !img.success) return; 
+
+            const div = document.createElement('div');
+            div.className = "relative group mb-6"; 
+            div.innerHTML = `
+                <div class="bg-gray-100 rounded-lg overflow-hidden relative border border-gray-200 shadow-sm" style="aspect-ratio: ${selectedAspectRatio.replace(':', '/')};">
+                    <img src="${img.base64}" class="w-full h-full object-cover">
+                    
+                     <a href="${img.base64}" download="scene_${index+1}.png" class="absolute top-2 right-2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-2 rounded-full transition z-10" title="Unduh Gambar">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    </a>
+
+                    <button class="regen-btn absolute top-2 left-2 bg-white bg-opacity-80 hover:bg-white text-purple-700 p-2 rounded-full transition z-10 shadow-sm" title="Generate Ulang Gambar Ini">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="mt-2 bg-purple-50 p-2 rounded border border-purple-100 text-xs text-gray-700">
+                    <span class="font-bold text-purple-700 block mb-1">&#127909; Saran Animasi:</span>
+                    ${img.videoPrompt || 'Menunggu saran...'}
+                </div>
+            `;
+            dom.imageGrid.appendChild(div);
+
+            const regenBtn = div.querySelector('.regen-btn');
+            regenBtn.addEventListener('click', () => regenerateImage(index));
+        });
+        showToast("Generasi Selesai!");
+    };
+
+    dom.styleCards.forEach(card => card.addEventListener('click', () => updateUIForStyle(card.dataset.style)));
+    dom.generateBtn.addEventListener('click', startGenerationProcess);
+    
+    // --- TTS & Audio Logic ---
+    dom.ttsBtn.addEventListener('click', async () => {
+        const script = dom.generatedScriptEl.value;
+        if (!script) { showToast('Naskah kosong.', true); return; }
+        
+        dom.ttsBtn.disabled = true;
+        dom.ttsBtn.innerHTML = `...`; 
+        dom.ttsBtn.classList.add('inline-flex', 'items-center', 'justify-center');
+        dom.audioPlayerControls.classList.add('hidden');
+
+        try {
+            const payload = { 
+                contents: [{ parts: [{ text: `Bacakan naskah ini: "${script}"` }] }], 
+                generationConfig: { 
+                    responseModalities: ["AUDIO"], 
+                    speechConfig: { 
+                        voiceConfig: { 
+                            prebuiltVoiceConfig: { 
+                                voiceName: dom.ttsVoiceSelect.value || 'Aoede' 
+                            } 
+                        } 
+                    } 
+                }
+            };
+            const result = await apiCall(TTS_API_URL, payload);
+            const audioPart = result?.candidates?.[0]?.content?.parts?.[0];
+            
+            if (audioPart?.inlineData?.data) {
+                let sampleRate = 24000;
+                const match = audioPart.inlineData.mimeType.match(/rate=(\d+)/);
+                if (match) sampleRate = parseInt(match[1], 10);
+
+                const pcmData = base64ToArrayBuffer(audioPart.inlineData.data);
+                const wavBlob = pcmToWav(new Int16Array(pcmData), 1, sampleRate);
+                const audioUrl = URL.createObjectURL(wavBlob);
+                generatedContent.audio = { blob: wavBlob };
+                dom.audioPlayer.src = audioUrl;
+                dom.audioPlayerControls.classList.remove('hidden');
+                dom.downloadAudioBtn.classList.remove('hidden'); 
+            } else {
+                 console.error("Respon API Audio Tidak Lengkap:", result);
+                 throw new Error('Data audio tidak valid atau kosong.');
+            }
+        } catch (error) { 
+            console.error(error);
+            showToast(`Gagal membuat audio: ${error.message}`, true); 
+        } 
+        finally { 
+            dom.ttsBtn.disabled = false;
+            dom.ttsBtn.innerHTML = 'Buat Audio';
+            dom.ttsBtn.classList.remove('inline-flex', 'items-center', 'justify-center');
+        }
+    });
+
+    dom.playAudioBtn.addEventListener('click', () => {
+        if (dom.audioPlayer.paused) {
+            dom.audioPlayer.play();
+            dom.playIcon.classList.add('hidden');
+            dom.pauseIcon.classList.remove('hidden');
+        } else {
+            dom.audioPlayer.pause();
+            dom.playIcon.classList.remove('hidden');
+            dom.pauseIcon.classList.add('hidden');
+        }
+    });
+    dom.audioPlayer.onended = () => {
+        dom.playIcon.classList.remove('hidden');
+        dom.pauseIcon.classList.add('hidden');
+    };
+
+    dom.downloadAudioBtn.addEventListener('click', () => {
+        if (!generatedContent.audio || !generatedContent.audio.blob) {
+            return showToast('Audio belum dibuat.', true);
+        }
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(generatedContent.audio.blob);
+        link.download = "audio.wav";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+
+    dom.downloadBtn.addEventListener('click', () => {
+        const successfulImages = generatedContent.images.filter(img => img && img.success);
+        if (successfulImages.length === 0) {
+            return showToast('Tidak ada gambar untuk diunduh.', true);
+        }
+        successfulImages.forEach((img, i) => {
+            const link = document.createElement('a');
+            link.href = img.base64;
+            link.download = `adegan_${selectedAspectRatio.replace(':', 'x')}_${i + 1}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+    });
+
+    dom.downloadPromptsBtn.addEventListener('click', () => {
+        if (generatedContent.shotPrompts.length === 0) {
+            return showToast('Tidak ada prompt untuk diunduh.', true);
+        }
+        let textContent = `--- PROMPT MASTER ---\n`;
+        textContent += `Karakter: ${generatedContent.masterScene?.character || 'N/A'}\n`;
+        textContent += `Pakaian: ${generatedContent.masterScene?.outfit || 'N/A'}\n`;
+        textContent += `Lokasi: ${generatedContent.masterScene?.location || 'N/A'}\n\n`;
+        textContent += `--- NASKAH VIDEO ---\n${generatedContent.masterScene?.tiktokScript || 'N/A'}\n\n`;
+        
+        textContent += `--- PROMPT GAMBAR & ANIMASI ---\n`;
+        generatedContent.images.forEach((img, i) => {
+            if (img && img.success) {
+                textContent += `\n[ADEGAN ${i + 1}]\n`;
+                textContent += `GAMBAR: ${generatedContent.shotPrompts[i] || 'N/A'}\n`;
+                textContent += `VIDEO MOTION: ${img.videoPrompt || 'N/A'}\n`;
+                textContent += `----------------------------------------\n`;
+            }
+        });
+
+        const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = "prompts_konten.txt";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+
+    function base64ToArrayBuffer(base64) {
+        const binary_string = atob(base64);
+        const len = binary_string.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            bytes[i] = binary_string.charCodeAt(i);
+        }
+        return bytes.buffer;
+    }
+
+    function pcmToWav(pcmData, numChannels, sampleRate) {
+        const buffer = new ArrayBuffer(44 + pcmData.byteLength);
+        const view = new DataView(buffer);
+        const writeString = (v, o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+        const blockAlign = numChannels * 2;
+        writeString(view, 0, 'RIFF');
+        view.setUint32(4, 36 + pcmData.byteLength, true);
+        writeString(view, 8, 'WAVE');
+        writeString(view, 12, 'fmt ');
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true);
+        view.setUint16(22, numChannels, true);
+        view.setUint32(24, sampleRate, true);
+        view.setUint32(28, sampleRate * blockAlign, true);
+        view.setUint16(32, blockAlign, true);
+        view.setUint16(34, 16, true);
+        writeString(view, 36, 'data');
+        view.setUint32(40, pcmData.byteLength, true);
+        new Int16Array(buffer, 44).set(pcmData);
+        return new Blob([view], { type: 'audio/wav' });
+    }
+
+    // --- Inisialisasi Firebase ---
+    const initializeFirebase = async () => {
+        try {
+            const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+            appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+            if (!firebaseConfig.apiKey) {
+                console.error("Firebase config not found.");
+                showToast("Gagal terhubung ke database.", true);
+                return;
+            }
+            
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            setLogLevel('Debug'); 
+
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    console.log("User authenticated:", user.uid);
+                    userId = user.uid;
+                } else {
+                    console.log("No user signed in.");
+                    userId = null;
+                }
+            });
+
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+                console.log("Signed in with custom token.");
+            } else {
+                await signInAnonymously(auth);
+                console.log("Signed in anonymously.");
+            }
+            
+        } catch (error) {
+            console.error("Firebase Initialization Error:", error);
+            showToast(`Error koneksi database: ${error.message}`, true);
+        }
+    };
+
+    dom.ttsVoiceSelect.innerHTML = ttsVoices.map(v => `<option value="${v.id}">${v.name}</option>`).join('');
+
+    initializeFirebase();
+});
+</script>
+</body>
+</html>
