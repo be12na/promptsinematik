@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cepat.Digital Voice Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #111827;
+        }
+        /* Navigation */
+        .top-nav-container {
+            max-width: 80rem;
+            margin: 0 auto;
+        }
+        .top-nav-link {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1.25rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .top-nav-link-default {
+            background-color: #ffffff;
+            color: #374151;
+            border: 1px solid #D1D5DB;
+        }
+        .top-nav-link-default:hover {
+            background-color: #EFF6FF;
+            border-color: #2563EB;
+            color: #2563EB;
+        }
+        .top-nav-link-active {
+            background-color: #2563EB;
+            color: #ffffff;
+            border: 1px solid #2563EB;
+        }
+        /* Tailwind v3 polyfills */
+        .rounded-2xl { border-radius: 1rem; }
+        .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+        .shadow-xl { box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); }
+        .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); }
+        .shadow-md { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); }
+
+        /* Spinner */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border-left-color: #ffffff;
+            animation: spin 1s ease infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Slider thumb */
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #2563EB;
+            border: 2px solid white;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 2px rgba(0,0,0,0.5);
+            margin-top: -8px;
+        }
+        /* Scrollbar fix */
+        body.overflow-hidden {
+             overflow: hidden;
+        }
+        /* API Key Gate */
+        #api-key-gate {
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .api-key-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-family: monospace;
+            border: 1px solid #e5e7eb;
+            background: #f9fafb;
+            color: #374151;
+            max-width: 250px;
+            overflow: hidden;
+        }
+        .api-key-chip.active {
+            border-color: #22c55e;
+            background: #f0fdf4;
+            color: #166534;
+        }
+        .api-key-chip.error {
+            border-color: #ef4444;
+            background: #fef2f2;
+            color: #991b1b;
+        }
+        .api-key-chip .remove-key {
+            cursor: pointer;
+            margin-left: 0.25rem;
+            color: #9ca3af;
+            font-weight: bold;
+            font-size: 1rem;
+            line-height: 1;
+        }
+        .api-key-chip .remove-key:hover {
+            color: #ef4444;
+        }
+        .key-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+        .key-status-dot.valid { background-color: #22c55e; }
+        .key-status-dot.invalid { background-color: #ef4444; }
+        .key-status-dot.unknown { background-color: #d1d5db; }
+        #app-main-content { transition: filter 0.3s, opacity 0.3s; }
+        #app-main-content.locked { filter: blur(4px); pointer-events: none; opacity: 0.4; user-select: none; }
+        .manage-keys-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.875rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            border: 1px solid #D1D5DB;
+            background: #fff;
+            color: #374151;
+            transition: all 0.2s;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .manage-keys-btn:hover {
+            border-color: #2563EB;
+            color: #2563EB;
+            background: #eff6ff;
+        }
+        .loader {
+            border: 3px solid rgba(59, 130, 246, 0.5);
+            border-left-color: #ffffff;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <!-- Top Navigation -->
+    <nav class="py-4 px-4 sm:px-6 lg:px-8">
+        <div class="top-nav-container flex flex-wrap items-center justify-center gap-3">
+            <a href="index.html" class="top-nav-link top-nav-link-default">🎬 Prompt Generator</a>
+            <a href="grok.html" class="top-nav-link top-nav-link-default">🤖 Grok Generator</a>
+            <a href="image-studio.html" class="top-nav-link top-nav-link-default">🎨 Image Studio</a>
+            <a href="voice-generator.html" class="top-nav-link top-nav-link-active">🎙️ Voice Generator</a>
+            <button id="open-key-manager" class="manage-keys-btn">🔑 API Keys <span id="key-count-badge" class="bg-blue-100 text-blue-700 rounded-full px-2 py-0 text-xs font-bold">0</span></button>
+        </div>
+    </nav>
+
+    <div id="app-main-content" class="locked">
+        <div class="relative min-h-screen md:flex">
+            <!-- Mobile menu overlay -->
+            <div id="mobile-menu-overlay" class="fixed inset-0 bg-black opacity-50 z-10 hidden md:hidden"></div>
+            
+            <!-- Sidebar -->
+            <aside id="sidebar" class="bg-gray-800 text-gray-100 w-64 space-y-6 py-7 px-2 absolute inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition duration-300 ease-in-out z-20">
+                <a href="#" class="text-white flex flex-col items-start space-y-2 px-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="48" fill="#2563EB"/>
+                        <path d="M 35 40 L 75 25 L 75 75 L 35 60 Z" fill="white"/>
+                        <path d="M 25 40 H 35 V 60 H 25 Z" fill="white"/>
+                    </svg>
+                    <span class="text-2xl font-bold">Cepat.Digital Voice</span>
+                </a>
+                <nav>
+                    <a href="#" class="flex items-center py-2.5 px-4 rounded transition duration-200 bg-gray-900" style="background-color: rgba(17,24,39,0.5);">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.858 5.858a3 3 0 014.243 0L12 7.757l1.9-1.9a3 3 0 014.242 0 3 3 0 010 4.243l-1.9 1.9-1.9 1.9a3 3 0 01-4.242 0l-1.9-1.9a3 3 0 010-4.243z" />
+                        </svg>
+                        <span>Generate Suara</span>
+                    </a>
+                </nav>
+            </aside>
+
+            <!-- Content -->
+            <div class="flex-1 flex flex-col">
+                <!-- Mobile Header -->
+                <header class="flex justify-between md:hidden bg-white shadow-md p-4 sticky top-0 z-10">
+                     <span class="text-xl font-bold text-gray-800">Cepat.Digital Voice</span>
+                     <button id="mobile-menu-button" class="text-gray-500 hover:text-gray-600 focus:outline-none focus:text-gray-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </header>
+                
+                <!-- Main Content Area -->
+                <main class="flex-1 p-4 md:p-10">
+                    <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8 max-w-2xl w-full mx-auto space-y-8">
+                        <!-- Step 1: Generate Script -->
+                        <div class="space-y-5">
+                            <div class="text-left pb-2 border-b">
+                                <h2 class="text-2xl font-bold text-gray-800">Langkah 1: Generate Script VO</h2>
+                                <p class="text-gray-500 mt-1">Buat script iklan profesional dalam hitungan detik.</p>
+                            </div>
+                            <div>
+                                <label for="product-desc" class="block text-sm font-medium text-gray-700 mb-1">Deskripsi Produk</label>
+                                <textarea id="product-desc" rows="4" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Contoh: Kopi Gayo single origin, diproses secara natural, dengan notes cokelat dan buah-buahan."></textarea>
+                            </div>
+                            <div>
+                                <label for="product-usp" class="block text-sm font-medium text-gray-700 mb-1">Unique Selling Point (USP)</label>
+                                <textarea id="product-usp" rows="2" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Contoh: 100% biji kopi Arabika pilihan, juara kontes kopi nasional."></textarea>
+                            </div>
+                            <div>
+                                <label for="script-quantity" class="block text-sm font-medium text-gray-700 mb-1">Jumlah Script (Maksimal 100)</label>
+                                <input type="number" id="script-quantity" value="1" min="1" max="100" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                            </div>
+                            <div>
+                                <label for="script-style" class="block text-sm font-medium text-gray-700 mb-1">Gaya Script</label>
+                                <select id="script-style" class="w-full p-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                                    <option value="prodigi" selected>Iklan ProDigi (Struktur Problem-Solution)</option>
+                                    <option value="tiktok">Tiktok Shop Affiliate (Review Gaul)</option>
+                                    <option value="tutorial">Tutorial/Demo Produk</option>
+                                    <option value="review">Review Produk (Jujur & Mendalam)</option>
+                                </select>
+                            </div>
+                            <div>
+                               <button id="generate-script-button" class="w-full bg-gray-700 text-white font-bold py-3 px-6 rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-4 focus:ring-gray-300 transition-all duration-300 ease-in-out flex items-center justify-center" style="background-color:#374151;">
+                                    <span class="mr-2">Buat Script</span>
+                                    <div id="script-loading-spinner" class="spinner hidden"></div>
+                                </button>
+                            </div>
+                        </div>
+
+                        <hr/>
+
+                        <!-- Step 2: Generate Audio -->
+                        <div class="space-y-5">
+                            <div class="text-left pb-2 border-b">
+                                 <h2 class="text-2xl font-bold text-gray-800">Langkah 2: Sempurnakan & Generate Audio</h2>
+                                 <p class="text-gray-500 mt-1">Analisis dan ubah script menjadi suara alami dengan AI.</p>
+                            </div>
+                            <div>
+                                <label for="text-input" class="block text-sm font-medium text-gray-700 mb-1">Teks untuk diucapkan (hasil script):</label>
+                                <textarea id="text-input" rows="6" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-gray-50" placeholder="Script yang di-generate akan muncul di sini..."></textarea>
+                                <div id="char-count" class="text-right text-xs text-gray-500 mt-1 pr-1">0 karakter</div>
+                            </div>
+                             <div class="mt-2">
+                                <button id="analyze-script-button" class="w-full bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-4 focus:ring-purple-300 transition-all duration-300 ease-in-out flex items-center justify-center">
+                                    <span class="mr-2">✨ Analisis & Tingkatkan Script</span>
+                                    <div id="analyze-loading-spinner" class="spinner hidden"></div>
+                                </button>
+                            </div>
+                            <div>
+                                <label for="voice-select" class="block text-sm font-medium text-gray-700 mb-1">Pilih Suara:</label>
+                                <select id="voice-select" class="w-full p-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"></select>
+                            </div>
+                            <div>
+                                <label for="text-type-select" class="block text-sm font-medium text-gray-700 mb-1">Gaya Bicara:</label>
+                                <select id="text-type-select" class="w-full p-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"></select>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 pt-2">
+                                <div>
+                                    <label for="volume-range" class="block text-sm font-medium text-gray-700 mb-1">Volume:</label>
+                                    <input type="range" id="volume-range" min="-10" max="10" value="0" step="1" class="w-full h-2 bg-gray-200 rounded-lg cursor-pointer" style="appearance:none;-webkit-appearance:none;">
+                                </div>
+                                <div>
+                                    <label for="pitch-range" class="block text-sm font-medium text-gray-700 mb-1">Nada (Pitch):</label>
+                                    <input type="range" id="pitch-range" min="-10" max="10" value="0" step="1" class="w-full h-2 bg-gray-200 rounded-lg cursor-pointer" style="appearance:none;-webkit-appearance:none;">
+                                </div>
+                                <div>
+                                    <label for="speed-range" class="block text-sm font-medium text-gray-700 mb-1">Kecepatan:</label>
+                                    <input type="range" id="speed-range" min="0.25" max="4.0" value="1.0" step="0.05" class="w-full h-2 bg-gray-200 rounded-lg cursor-pointer" style="appearance:none;-webkit-appearance:none;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-4">
+                            <button id="speak-button" class="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all duration-300 ease-in-out flex items-center justify-center">
+                                <span class="mr-2">Ucapkan Teks</span>
+                                <div id="loading-spinner" class="spinner hidden"></div>
+                            </button>
+                        </div>
+                        
+                        <div id="output-container" class="mt-6 space-y-4"></div>
+                        <div id="error-message" class="text-red-500 text-center mt-4 hidden p-3 bg-red-50 rounded-lg"></div>
+                    </div>
+
+                     <!-- Analysis Modal -->
+                    <div id="analysis-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
+                        <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+                            <div class="mt-3">
+                                <h3 class="text-2xl leading-6 font-bold text-gray-900 text-center">Hasil Analisis Script ✨</h3>
+                                <div id="analysis-content" class="mt-4 px-4 py-3 text-left space-y-4 overflow-y-auto" style="max-height:60vh;"></div>
+                                <div class="items-center px-4 py-3 mt-4 text-center space-y-2 sm:flex sm:justify-center sm:space-x-4" style="display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;">
+                                    <button id="use-new-script-button" class="px-4 py-2 bg-blue-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                        Gunakan Script Baru
+                                    </button>
+                                    <button id="close-modal-button" class="px-4 py-2 bg-gray-200 text-gray-800 text-base font-medium rounded-md shadow-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400">
+                                        Tutup
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <footer class="text-center py-8 mt-8 text-xs text-gray-400">
+                        <p>&copy; 2024 Cepat.Digital. Hak Cipta Dilindungi Undang-Undang.</p>
+                    </footer>
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Key Gate Modal -->
+    <div id="api-key-gate" class="fixed inset-0 bg-gray-900 bg-opacity-60 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 max-w-lg w-full p-6 sm:p-8">
+            <div class="text-center mb-6">
+                <div class="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900">Masukkan API Key Gemini</h2>
+                <p class="text-sm text-gray-500 mt-2">Diperlukan untuk mengakses fitur Voice Generator. Anda bisa menambahkan beberapa key untuk rotasi otomatis saat limit habis.</p>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Gemini API Key</label>
+                    <div class="flex gap-2">
+                        <input type="password" id="api-key-input" class="flex-1 rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:ring-blue-500" placeholder="AIzaSy...">
+                        <button id="toggle-key-visibility" class="px-3 border border-gray-300 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition" title="Tampilkan/Sembunyikan">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                <button id="add-key-btn" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2.5 px-4 rounded-lg transition-all duration-200 flex items-center justify-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                    Validasi & Tambah Key
+                </button>
+                <p id="key-validation-msg" class="text-sm text-center hidden"></p>
+                <div id="saved-keys-section" class="border-t border-gray-200 pt-4 mt-4 hidden">
+                    <h3 class="text-sm font-semibold text-gray-700 mb-2">API Keys Tersimpan (<span id="saved-key-count">0</span>)</h3>
+                    <div id="saved-keys-list" class="flex flex-wrap gap-2 overflow-y-auto" style="max-height:8rem;"></div>
+                </div>
+                <button id="enter-app-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 hidden">
+                    ✅ Masuk ke Voice Generator
+                </button>
+                <p class="text-xs text-gray-400 text-center">API Key disimpan di browser Anda (localStorage). Tidak dikirim ke server manapun selain Google AI.</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- API KEY MANAGER ---
+            const STORAGE_KEY = 'grok_gemini_api_keys';
+            let apiKeys = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            let failedKeysThisSession = new Set();
+
+            const getActiveKey = () => {
+                const available = apiKeys.filter(k => k.status !== 'invalid' && !failedKeysThisSession.has(k.key));
+                if (available.length === 0) {
+                    failedKeysThisSession.clear();
+                    const fallback = apiKeys.filter(k => k.status !== 'invalid');
+                    if (fallback.length === 0) return null;
+                    return fallback[Math.floor(Math.random() * fallback.length)].key;
+                }
+                return available[Math.floor(Math.random() * available.length)].key;
+            };
+
+            const markKeyLimited = (key) => {
+                failedKeysThisSession.add(key);
+                const entry = apiKeys.find(k => k.key === key);
+                if (entry) entry.status = 'limited';
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(apiKeys));
+                console.warn('Key ...' + key.slice(-6) + ' marked limited. Rotating...');
+            };
+
+            const buildApiUrl = (model) => {
+                const key = getActiveKey();
+                if (!key) throw new Error('Tidak ada API Key yang tersedia. Silakan tambahkan API Key.');
+                return { url: 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + key, usedKey: key };
+            };
+
+            const getTextApiUrl = () => buildApiUrl('gemini-2.5-flash');
+            const getTtsApiUrl = () => buildApiUrl('gemini-2.5-flash-preview-tts');
+
+            // Smart fetch with key rotation on 429
+            async function apiFetch(url, options, usedKey) {
+                let currentUrl = url;
+                let currentKey = usedKey;
+                for (let attempt = 0; attempt < 5; attempt++) {
+                    const response = await fetch(currentUrl, options);
+                    if (response.status === 429 && currentKey) {
+                        markKeyLimited(currentKey);
+                        const newKey = getActiveKey();
+                        if (!newKey) throw new Error('Semua API Key telah mencapai limit.');
+                        currentUrl = currentUrl.replace(currentKey, newKey);
+                        currentKey = newKey;
+                        const delay = Math.pow(2, attempt) * 1000;
+                        await new Promise(r => setTimeout(r, delay));
+                        continue;
+                    }
+                    return response;
+                }
+                throw new Error('Gagal setelah beberapa percobaan (rate limit).');
+            }
+
+            // --- API Key Gate UI ---
+            const apiKeyGate = document.getElementById('api-key-gate');
+            const apiKeyInput = document.getElementById('api-key-input');
+            const addKeyBtn = document.getElementById('add-key-btn');
+            const keyValidationMsg = document.getElementById('key-validation-msg');
+            const savedKeysSection = document.getElementById('saved-keys-section');
+            const savedKeysList = document.getElementById('saved-keys-list');
+            const savedKeyCount = document.getElementById('saved-key-count');
+            const enterAppBtn = document.getElementById('enter-app-btn');
+            const toggleKeyVisBtn = document.getElementById('toggle-key-visibility');
+            const openKeyManagerBtn = document.getElementById('open-key-manager');
+            const keyCountBadge = document.getElementById('key-count-badge');
+            const appMainContent = document.getElementById('app-main-content');
+
+            const showKeyMsg = (msg, isError) => {
+                keyValidationMsg.textContent = msg;
+                keyValidationMsg.classList.remove('hidden', 'text-green-600', 'text-red-600');
+                keyValidationMsg.classList.add(isError ? 'text-red-600' : 'text-green-600');
+            };
+            const hideKeyMsg = () => keyValidationMsg.classList.add('hidden');
+
+            const renderKeyList = () => {
+                savedKeyCount.textContent = apiKeys.length;
+                keyCountBadge.textContent = apiKeys.length;
+                if (apiKeys.length === 0) {
+                    savedKeysSection.classList.add('hidden');
+                    enterAppBtn.classList.add('hidden');
+                    appMainContent.classList.add('locked');
+                    return;
+                }
+                savedKeysSection.classList.remove('hidden');
+                enterAppBtn.classList.remove('hidden');
+                savedKeysList.innerHTML = '';
+                apiKeys.forEach((entry, idx) => {
+                    const chip = document.createElement('div');
+                    const statusClass = entry.status === 'valid' ? 'active' : (entry.status === 'invalid' ? 'error' : '');
+                    const dotClass = entry.status === 'valid' ? 'valid' : (entry.status === 'invalid' ? 'invalid' : 'unknown');
+                    chip.className = 'api-key-chip ' + statusClass;
+                    chip.innerHTML = '<span class="key-status-dot ' + dotClass + '"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">...' + entry.key.slice(-8) + '</span><span class="remove-key" data-idx="' + idx + '">&times;</span>';
+                    savedKeysList.appendChild(chip);
+                });
+                savedKeysList.querySelectorAll('.remove-key').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const idx = parseInt(e.target.dataset.idx);
+                        apiKeys.splice(idx, 1);
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(apiKeys));
+                        renderKeyList();
+                        if (apiKeys.length === 0) {
+                            appMainContent.classList.add('locked');
+                            apiKeyGate.classList.remove('hidden');
+                        }
+                    });
+                });
+            };
+
+            const validateApiKey = async (key) => {
+                try {
+                    const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models?key=' + key);
+                    if (res.ok) return { valid: true };
+                    if (res.status === 400 || res.status === 403) return { valid: false, msg: 'API Key tidak valid atau tidak memiliki akses.' };
+                    if (res.status === 429) return { valid: true, msg: 'Key valid tapi sedang rate-limited. Tetap ditambahkan.' };
+                    return { valid: false, msg: 'Error ' + res.status };
+                } catch (e) {
+                    return { valid: false, msg: 'Gagal koneksi ke Google AI. Periksa internet Anda.' };
+                }
+            };
+
+            addKeyBtn.addEventListener('click', async () => {
+                const key = apiKeyInput.value.trim();
+                if (!key) { showKeyMsg('Masukkan API Key terlebih dahulu.', true); return; }
+                if (!key.startsWith('AIza')) { showKeyMsg('Format API Key tidak valid. Key Gemini dimulai dengan "AIza...".', true); return; }
+                if (apiKeys.find(k => k.key === key)) { showKeyMsg('API Key ini sudah ada dalam daftar.', true); return; }
+
+                addKeyBtn.disabled = true;
+                addKeyBtn.innerHTML = '<span class="loader" style="width:20px;height:20px;border-width:2px;border-color:rgba(255,255,255,0.5);border-left-color:#fff;display:inline-block;"></span> Memvalidasi...';
+                hideKeyMsg();
+
+                const result = await validateApiKey(key);
+                addKeyBtn.disabled = false;
+                addKeyBtn.innerHTML = '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg> Validasi & Tambah Key';
+
+                if (result.valid) {
+                    apiKeys.push({ key: key, status: 'valid' });
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(apiKeys));
+                    apiKeyInput.value = '';
+                    showKeyMsg(result.msg || 'API Key valid! Berhasil ditambahkan.', false);
+                    renderKeyList();
+                } else {
+                    showKeyMsg(result.msg, true);
+                }
+            });
+
+            toggleKeyVisBtn.addEventListener('click', () => {
+                apiKeyInput.type = apiKeyInput.type === 'password' ? 'text' : 'password';
+            });
+
+            enterAppBtn.addEventListener('click', () => {
+                if (apiKeys.length > 0) {
+                    apiKeyGate.classList.add('hidden');
+                    appMainContent.classList.remove('locked');
+                }
+            });
+
+            openKeyManagerBtn.addEventListener('click', () => {
+                apiKeyGate.classList.remove('hidden');
+            });
+
+            // On page load: check keys
+            if (apiKeys.length > 0) {
+                apiKeyGate.classList.add('hidden');
+                appMainContent.classList.remove('locked');
+            }
+            renderKeyList();
+
+            // --- DATA & ELEMEN DOM ---
+            const voices = [
+                { name: "Aoede (Wanita, Ramah)", voiceName: "Aoede" }, { name: "Kore (Pria, Tegas)", voiceName: "Kore" },
+                { name: "Charon (Pria, Informatif)", voiceName: "Charon" }, { name: "Puck (Pria, Ceria)", voiceName: "Puck" },
+                { name: "Leda (Wanita, Muda)", voiceName: "Leda" }, { name: "Zephyr (Wanita, Cerah)", voiceName: "Zephyr" },
+                { name: "Sadachbia (Pria, Bersemangat)", voiceName: "Sadachbia" }, { name: "Vindemiatrix (Wanita, Lembut)", voiceName: "Vindemiatrix" }
+            ];
+
+            const textStyles = [
+                { name: "Normal (Default)", prompt: "" }, { name: "Alur Cerita", prompt: "Bacakan sebagai narator cerita: " },
+                { name: "Pembaca Berita", prompt: "Bacakan dengan nada formal seperti pembaca berita: " },
+                { name: "Bersemangat", prompt: "Ucapkan dengan nada ceria dan bersemangat: " },
+                { name: "Sedih", prompt: "Ucapkan dengan nada suara yang pelan dan sedih: " },
+                { name: "Audio Terapi (Relaksasi)", prompt: "Ucapkan dengan nada suara wanita yang rendah, hangat, dan lembut, seperti seorang pemandu meditasi. Suara harus tenang, penuh empati, dan tidak monoton, dengan intonasi yang sedikit menurun di akhir kalimat untuk menciptakan suasana damai dan aman untuk audio terapi: " }
+            ];
+
+            // Elemen DOM untuk Script Generator
+            const productDesc = document.getElementById('product-desc'), productUsp = document.getElementById('product-usp'),
+                  scriptQuantity = document.getElementById('script-quantity'), generateScriptButton = document.getElementById('generate-script-button'),
+                  scriptLoadingSpinner = document.getElementById('script-loading-spinner');
+            
+            // Elemen DOM untuk Audio Generator
+            const textInput = document.getElementById('text-input'), voiceSelect = document.getElementById('voice-select'),
+                  textTypeSelect = document.getElementById('text-type-select'), speakButton = document.getElementById('speak-button'),
+                  loadingSpinner = document.getElementById('loading-spinner'), errorMessage = document.getElementById('error-message'),
+                  outputContainer = document.getElementById('output-container'), volumeRange = document.getElementById('volume-range'),
+                  pitchRange = document.getElementById('pitch-range'), speedRange = document.getElementById('speed-range'),
+                  charCount = document.getElementById('char-count');
+
+            // Elemen DOM untuk Analisis Script
+            const analyzeScriptButton = document.getElementById('analyze-script-button'), analyzeLoadingSpinner = document.getElementById('analyze-loading-spinner'),
+                  analysisModal = document.getElementById('analysis-modal'), analysisContent = document.getElementById('analysis-content'),
+                  useNewScriptButton = document.getElementById('use-new-script-button'), closeModalButton = document.getElementById('close-modal-button');
+            let improvedScriptText = '';
+
+            // --- INISIALISASI ---
+            voices.forEach(v => { voiceSelect.add(new Option(v.name, v.voiceName)); });
+            textStyles.forEach(s => { textTypeSelect.add(new Option(s.name, s.prompt)); });
+
+            // --- EVENT LISTENERS ---
+            generateScriptButton.addEventListener('click', handleGenerateScript);
+            speakButton.addEventListener('click', handleSpeak);
+            analyzeScriptButton.addEventListener('click', handleAnalyzeScript);
+            textInput.addEventListener('input', () => { charCount.textContent = textInput.value.length + ' karakter'; });
+            closeModalButton.addEventListener('click', () => analysisModal.classList.add('hidden'));
+            useNewScriptButton.addEventListener('click', () => {
+                if (improvedScriptText) {
+                    textInput.value = improvedScriptText;
+                    charCount.textContent = improvedScriptText.length + ' karakter';
+                }
+                analysisModal.classList.add('hidden');
+            });
+
+
+            // --- FUNGSI GENERATE SCRIPT (LANGKAH 1) ---
+            async function handleGenerateScript() {
+                const description = productDesc.value.trim();
+                const usp = productUsp.value.trim();
+                const quantity = parseInt(scriptQuantity.value, 10) || 1;
+                const scriptStyle = document.getElementById('script-style').value;
+
+                if (!description || !usp) {
+                    showError("Harap isi Deskripsi Produk dan USP."); return;
+                }
+                if (quantity < 1 || quantity > 100) {
+                    showError("Jumlah script harus antara 1 dan 100."); return;
+                }
+
+                setLoading(true, generateScriptButton, scriptLoadingSpinner, "Membuat script...");
+                hideError();
+
+                let stylePrompt = '';
+                let structurePrompt = 'Setiap naskah HARUS mengikuti struktur dan durasi berikut dengan ketat: 1. Hook (2-3 detik pertama): Kalimat pembuka yang menarik perhatian. 2. Manfaat (8-9 detik berikutnya): Jelaskan manfaat utama produk berdasarkan deskripsi dan USP. 3. CTA (2-3 detik terakhir): Ajakan bertindak yang jelas dan singkat. Pastikan total durasi setiap naskah sekitar 12-15 detik.';
+
+                switch (scriptStyle) {
+                    case 'prodigi':
+                        stylePrompt = 'Anda adalah copywriter digital profesional (ProDigi). Buat naskah yang terstruktur untuk audiens Indonesia. Durasi maksimal 30 detik. Gaya bahasa harus sangat ngobrol, dekat dengan audiens Indonesia, dan sama sekali tidak formal. Naskah HARUS mengikuti alur ini: 1. Hook (Sebutkan pain point/masalah yang relevan dengan audiens). 2. Solusi (Perkenalkan produk sebagai solusi masalah itu). 3. Feature Stacking (Jelaskan 2-3 fitur utama secara logis, mulai dari kegunaan, efisiensi, lalu keunggulan harga jika ada). 4. CTA (Ajakan bertindak yang to-the-point dan bersifat undangan sosial, misal \'Coba sekarang dan rasakan bedanya\', bukan \'Beli sekarang!\'). ';
+                        structurePrompt = '';
+                        break;
+                    case 'tiktok':
+                        stylePrompt = 'Anda adalah seorang kreator afiliasi TikTok. Buat naskah review yang jujur, santai, dan sangat persuasif (soft selling) ala "racun TikTok". Durasi maksimal 30 detik. Gaya bicaranya harus ngobrol blak-blakan. Gunakan bahasa gaul Indonesia yang relevan (cth: "sumpah", "worth it banget", "keren parah", "checkout di keranjang kuning ya!"). Fokus pada pengalaman pribadi dan mengapa produk ini wajib punya. ';
+                        structurePrompt = 'Pastikan total durasi setiap naskah sekitar 30 detik. Naskah harus memiliki Hook, Manfaat (review blak-blakan), dan CTA (ajakan ke keranjang kuning) yang jelas.';
+                        break;
+                    case 'tutorial':
+                        stylePrompt = 'Anda adalah seorang instruktur atau reviewer yang sedang membuat video demo/tutorial. Buat naskah yang jelas, runut (langkah-demi-langkah), dan informatif. Durasi sekitar 30-35 detik. Naskah harus jelas, jujur, dan sangat teliti. Gunakan bahasa Indonesia yang ramah (seperti seorang teman yang mengajari). Fokus pada \'cara penggunaan\' produk untuk mendapatkan hasil terbaik. ';
+                        structurePrompt = 'Pastikan total durasi setiap naskah sekitar 30-35 detik. Naskah harus memiliki Hook, Poin Utama (langkah-langkah demo), dan CTA/Kesimpulan yang jelas.';
+                        break;
+                    case 'review':
+                        stylePrompt = 'Anda adalah seorang reviewer produk yang terpercaya. Buat naskah review yang seimbang (sebutkan kelebihan dan mungkin sedikit kekurangan/catatan jika ada). Durasi sekitar 40 detik. Naskah harus sangat jujur. Gunakan gaya bahasa semi-formal yang jujur dan mendalam. Fokus pada \'pengalaman nyata\' setelah menggunakan produk dan berikan penilaian akhir (misal: \'skor 9/10 dari aku\'). ';
+                        structurePrompt = 'Pastikan total durasi setiap naskah sekitar 40 detik. Naskah harus memiliki Hook, Poin Review (pengalaman nyata/penilaian), dan CTA/Kesimpulan yang jelas.';
+                        break;
+                }
+
+                const prompt = 'Anda adalah seorang copywriter iklan profesional. ' + stylePrompt + 'Buat ' + quantity + ' variasi naskah voice over singkat yang unik untuk iklan digital berdasarkan informasi berikut. Deskripsi Produk: "' + description + '". Unique Selling Point (USP): "' + usp + '". ' + structurePrompt + ' Hanya berikan teks naskahnya saja, tanpa judul atau label seperti "Hook:", "Manfaat:", atau "CTA:". ' + (quantity > 1 ? 'Pisahkan setiap naskah yang berbeda dengan DUA kali ganti baris (enter). Ini akan membuat satu baris kosong di antara setiap script.' : '');
+                
+                try {
+                    const { url: apiUrl, usedKey } = getTextApiUrl();
+                    const response = await apiFetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) }, usedKey);
+                    if (!response.ok) { const errData = await response.json().catch(() => ({})); throw new Error(errData.error?.message || 'Error HTTP: ' + response.status); }
+                    const result = await response.json();
+                    const script = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (!script) throw new Error("Tidak ada script yang dihasilkan.");
+                    textInput.value = script.trim();
+                    charCount.textContent = script.trim().length + ' karakter';
+                    textInput.focus();
+                } catch (err) { showError('Gagal membuat script: ' + err.message);
+                } finally { setLoading(false, generateScriptButton, scriptLoadingSpinner, "Buat Script"); }
+            }
+
+            // --- FUNGSI ANALISIS SCRIPT (LANGKAH 1.5) ---
+            async function handleAnalyzeScript() {
+                const script = textInput.value.trim();
+                if (!script) {
+                    showError("Tidak ada script untuk dianalisis. Harap generate atau tulis script terlebih dahulu.");
+                    return;
+                }
+
+                setLoading(true, analyzeScriptButton, analyzeLoadingSpinner, "Menganalisis...");
+                hideError();
+
+                const prompt = 'Anda adalah seorang direktur kreatif dan editor naskah iklan profesional. Analisis naskah voice over berikut:\n---\n' + script + '\n---\nBerikan feedback konstruktif dan versi yang lebih baik. Susun respons Anda PERSIS seperti berikut, menggunakan pemisah yang ditentukan:\n\nANALYSIS_START\n### Analisis Script\n**Kekuatan:**\n- Poin kekuatan 1\n- Poin kekuatan 2\n**Area Peningkatan:**\n- Poin peningkatan 1\n- Poin peningkatan 2\n**Saran CTA:**\n- Saran CTA 1\nANALYSIS_END\n\nIMPROVED_SCRIPT_START\nTeks naskah baru yang disempurnakan ada di sini.\nIMPROVED_SCRIPT_END';
+
+                try {
+                    const { url: apiUrl, usedKey } = getTextApiUrl();
+                    const response = await apiFetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) }, usedKey);
+                    if (!response.ok) { const errData = await response.json().catch(() => ({})); throw new Error(errData.error?.message || 'Error HTTP: ' + response.status); }
+
+                    const result = await response.json();
+                    const fullResponse = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (!fullResponse) { throw new Error("Tidak ada hasil analisis yang diterima dari AI."); }
+                    
+                    const analysisPart = fullResponse.split('ANALYSIS_START')[1]?.split('ANALYSIS_END')[0]?.trim() || 'Analisis tidak tersedia.';
+                    improvedScriptText = fullResponse.split('IMPROVED_SCRIPT_START')[1]?.split('IMPROVED_SCRIPT_END')[0]?.trim() || 'Script baru tidak tersedia.';
+
+                    var analysisHtml = analysisPart
+                        .replace(/### (.*)/g, '<h4 class="text-xl font-semibold mb-2">$1</h4>')
+                        .replace(/\*\*(.*?):\*\*/g, '<p class="text-md font-semibold mt-4">$1</p>')
+                        .replace(/- (.*)/g, '<li class="ml-5 list-disc">$1</li>')
+                        .replace(/\n/g, ''); 
+
+                    var newScriptHtml = '<h4 class="text-xl font-semibold mb-2 mt-6">Versi yang Ditingkatkan</h4><div class="mt-2 p-4 bg-gray-100 rounded-md text-left"><p style="white-space:pre-wrap;">' + improvedScriptText + '</p></div>';
+
+                    analysisContent.innerHTML = analysisHtml + newScriptHtml;
+                    analysisModal.classList.remove('hidden');
+                } catch (err) {
+                    showError('Gagal menganalisis script: ' + err.message);
+                } finally {
+                    setLoading(false, analyzeScriptButton, analyzeLoadingSpinner, "✨ Analisis & Tingkatkan Script");
+                }
+            }
+
+
+            // --- FUNGSI GENERATE AUDIO (LANGKAH 2) ---
+            async function handleSpeak() {
+                const textsToProcess = textInput.value.trim().split(/\n\s*\n/).filter(t => t.trim());
+                if (!textsToProcess.length) { showError("Script kosong, silakan generate script terlebih dahulu."); return; }
+                
+                setLoading(true, speakButton, loadingSpinner, "Memproses..."); hideError(); outputContainer.innerHTML = ''; 
+                
+                try {
+                    const audioFiles = await generateIndividualAudios(textsToProcess);
+                    if (audioFiles.length > 0) displayAudioOutputs(audioFiles);
+                    else showError("Tidak ada audio yang berhasil dibuat.");
+                } catch(err) { showError(err.message);
+                } finally { setLoading(false, speakButton, loadingSpinner, "Ucapkan Teks"); }
+            }
+            
+            async function generateIndividualAudios(texts) {
+                var audioFiles = [];
+                for (var i = 0; i < texts.length; i++) {
+                    setLoading(true, speakButton, loadingSpinner, 'Memproses ' + (i + 1) + '/' + texts.length + '...');
+                    try {
+                        var result = await callTtsAPI(texts[i]);
+                        var pcmData = base64ToArrayBuffer(result.audioData);
+                        var pcm16 = new Int16Array(pcmData);
+                        var wavBlob = pcmToWav(pcm16, result.sampleRate);
+                        audioFiles.push({ name: 'audio_' + (i + 1) + '.wav', blob: wavBlob });
+                    } catch (error) { showErrorForPart('Gagal pada bagian ' + (i+1) + ': ' + error.message); }
+                }
+                return audioFiles;
+            }
+
+            async function callTtsAPI(text) {
+                var payload = { contents: [{ parts: [{ text: textTypeSelect.value + text }] }], generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voiceSelect.value } }, audioConfig: { speakingRate: parseFloat(speedRange.value), pitch: parseInt(pitchRange.value), volumeGainDb: parseFloat(volumeRange.value) } } }, model: "gemini-2.5-flash-preview-tts" };
+                var { url: apiUrl, usedKey } = getTtsApiUrl();
+                var response = await apiFetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }, usedKey);
+                if (!response.ok) { var errData = await response.json().catch(() => ({})); throw new Error(errData.error?.message || 'Error HTTP: ' + response.status); }
+                var result = await response.json();
+                var part = result?.candidates?.[0]?.content?.parts?.[0];
+                if (!part?.inlineData?.data) throw new Error("Data audio tidak valid dari API.");
+                return { audioData: part.inlineData.data, sampleRate: parseInt(part.inlineData.mimeType.match(/rate=(\d+)/)[1], 10) || 24000 };
+            }
+            
+            // --- FUNGSI UI & HELPER ---
+            function displayAudioOutputs(audioFiles) {
+                outputContainer.innerHTML = ''; 
+                audioFiles.forEach(function(file, index) {
+                    var url = URL.createObjectURL(file.blob);
+                    var div = document.createElement('div');
+                    div.className = 'p-4 border rounded-lg space-y-3 bg-gray-50';
+                    div.innerHTML = '<p class="font-semibold text-gray-700">Hasil Audio ' + (index + 1) + '</p><audio controls class="w-full rounded-lg"></audio>';
+                    div.querySelector('audio').src = url;
+                    outputContainer.appendChild(div);
+                });
+                if (audioFiles.length > 0) {
+                    var downloadButton = document.createElement('button');
+                    downloadButton.textContent = 'Unduh Semua (.zip)';
+                    downloadButton.className = 'w-full bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 transition flex items-center justify-center mt-4';
+                    downloadButton.onclick = function() { downloadAllAsZip(audioFiles); };
+                    outputContainer.appendChild(downloadButton);
+                }
+            }
+
+            async function downloadAllAsZip(audioFiles) {
+                var zip = new JSZip();
+                audioFiles.forEach(function(file) { zip.file(file.name, file.blob); });
+                zip.generateAsync({ type: "blob" }).then(function(content) {
+                    var link = document.createElement('a');
+                    link.href = URL.createObjectURL(content);
+                    link.download = 'cepat_digital_voice_audios.zip';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                });
+            }
+
+            function base64ToArrayBuffer(base64) {
+                var str = atob(base64), len = str.length, bytes = new Uint8Array(len);
+                for (var i = 0; i < len; i++) bytes[i] = str.charCodeAt(i); return bytes.buffer;
+            }
+
+            function pcmToWav(pcmData, sampleRate) {
+                var buffer = new ArrayBuffer(44 + pcmData.length * 2), view = new DataView(buffer);
+                function writeString(view, offset, string) { for (var i = 0; i < string.length; i++) view.setUint8(offset + i, string.charCodeAt(i)); }
+                writeString(view, 0, 'RIFF'); view.setUint32(4, 36 + pcmData.length * 2, true); writeString(view, 8, 'WAVE');
+                writeString(view, 12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true);
+                view.setUint16(22, 1, true); view.setUint32(24, sampleRate, true); view.setUint32(28, sampleRate * 2, true);
+                view.setUint16(32, 2, true); view.setUint16(34, 16, true); writeString(view, 36, 'data');
+                view.setUint32(40, pcmData.length * 2, true);
+                for (var i = 0; i < pcmData.length; i++) { view.setInt16(44 + i * 2, pcmData[i], true); }
+                return new Blob([view], { type: 'audio/wav' });
+            }
+
+            function setLoading(isLoading, button, spinner, message) {
+                button.disabled = isLoading;
+                var span = button.querySelector('span');
+                if (isLoading) { spinner.classList.remove('hidden'); if (span) span.textContent = message; } 
+                else { spinner.classList.add('hidden'); if (span) span.textContent = message; }
+            }
+            
+            function showError(message) { errorMessage.textContent = message; errorMessage.classList.remove('hidden'); }
+            function showErrorForPart(message) {
+                var errDiv = document.createElement('div');
+                errDiv.className = 'text-red-500 text-center p-2 bg-red-50 rounded-lg text-sm';
+                errDiv.textContent = message; outputContainer.appendChild(errDiv);
+            }
+            function hideError() { errorMessage.classList.add('hidden'); }
+
+            // --- SIDEBAR MOBILE ---
+            var sidebar = document.getElementById('sidebar'), mobileMenuButton = document.getElementById('mobile-menu-button'),
+                  mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
+            function toggleMenu() {
+                sidebar.classList.toggle('-translate-x-full');
+                mobileMenuOverlay.classList.toggle('hidden');
+                document.body.classList.toggle('overflow-hidden');
+            }
+            mobileMenuButton.addEventListener('click', toggleMenu);
+            mobileMenuOverlay.addEventListener('click', toggleMenu);
+        });
+    </script>
+</body>
+</html>
