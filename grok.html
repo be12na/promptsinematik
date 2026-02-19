@@ -542,11 +542,6 @@
     
 
 <script type="module">
-// --- Impor Firebase ---
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, collection, addDoc, query, onSnapshot, serverTimestamp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
 
 document.addEventListener('DOMContentLoaded', () => {
     let selectedStyle = null, uploadedFiles = {}, generatedContent = { masterScene: null, images: [], audio: null, shotPrompts: [] };
@@ -555,9 +550,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let modelMode = 'upload';
 
     const MAX_FILE_SIZE = 5 * 1024 * 1024; 
-    const LIBRARY_MAX_FILE_SIZE = 500 * 1024; 
-    
-    let db, auth, userId, appId;
+    const LIBRARY_MAX_FILE_SIZE = 500 * 1024;
     let currentAssetTargetInput = null;
     let assetUnsubscribe = null;
     
@@ -1529,50 +1522,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Blob([view], { type: 'audio/wav' });
     }
 
-    // --- Inisialisasi Firebase ---
-    const initializeFirebase = async () => {
-        try {
-            const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-            appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-
-            if (!firebaseConfig.apiKey) {
-                console.error("Firebase config not found.");
-                showToast("Gagal terhubung ke database.", true);
-                return;
-            }
-            
-            const app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            auth = getAuth(app);
-            setLogLevel('Debug'); 
-
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    console.log("User authenticated:", user.uid);
-                    userId = user.uid;
-                } else {
-                    console.log("No user signed in.");
-                    userId = null;
-                }
-            });
-
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await signInWithCustomToken(auth, __initial_auth_token);
-                console.log("Signed in with custom token.");
-            } else {
-                await signInAnonymously(auth);
-                console.log("Signed in anonymously.");
-            }
-            
-        } catch (error) {
-            console.error("Firebase Initialization Error:", error);
-            showToast(`Error koneksi database: ${error.message}`, true);
-        }
-    };
-
     dom.ttsVoiceSelect.innerHTML = ttsVoices.map(v => `<option value="${v.id}">${v.name}</option>`).join('');
-
-    initializeFirebase();
 });
 </script>
 </body>
