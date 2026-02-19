@@ -636,7 +636,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const getTextApiUrl = () => buildApiUrl('gemini-2.5-flash');
-    const getImageApiUrl = () => buildApiUrl('gemini-2.0-flash-preview-image-generation');
+    const getImageApiUrl = () => buildApiUrl('gemini-2.0-flash');
     const getTtsApiUrl = () => buildApiUrl('gemini-2.5-flash-preview-tts');
 
     // --- API Key Gate UI ---
@@ -1185,7 +1185,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const generateSingleImage = async (prompt, index, total, fashionItem = null) => {
-        const maxRetries = 3; 
+        const maxRetries = 3;
+        let lastError = '';
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             try {
                 const payload = {
@@ -1210,8 +1211,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 return { base64: croppedBase64Data, success: true, label: `Adegan ${index}` };
             } catch (error) {
+                lastError = error.message;
                 console.warn(`Retry ${attempt} failed:`, error);
-                if (attempt === maxRetries) return { base64: null, success: false };
+                if (attempt === maxRetries) return { base64: null, success: false, error: lastError };
             }
         }
     };
@@ -1330,7 +1332,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const aspectClass = { "9:16": "aspect-ratio-9-16", "1:1": "aspect-ratio-1-1", "16:9": "aspect-ratio-16-9" }[selectedAspectRatio];
         
         generatedContent.images.forEach((img, index) => {
-            if (!img || !img.success) return; 
+            if (!img) return;
+
+            if (!img.success) {
+                const div = document.createElement('div');
+                div.className = "relative mb-6";
+                div.innerHTML = `
+                    <div class="bg-red-50 rounded-lg overflow-hidden relative border border-red-200 shadow-sm flex flex-col items-center justify-center p-4 text-center" style="aspect-ratio: ${selectedAspectRatio.replace(':', '/')}; min-height: 120px;">
+                        <p class="text-red-600 font-semibold text-sm mb-1">Gagal: Adegan ${index + 1}</p>
+                        <p class="text-red-500 text-xs">${img.error || 'Unknown error'}</p>
+                        <button class="regen-btn mt-3 bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded-full text-xs font-semibold transition">🔄 Coba Lagi</button>
+                    </div>
+                `;
+                dom.imageGrid.appendChild(div);
+                div.querySelector('.regen-btn').addEventListener('click', () => regenerateImage(index));
+                return;
+            }
 
             const div = document.createElement('div');
             div.className = "relative group mb-6"; 
