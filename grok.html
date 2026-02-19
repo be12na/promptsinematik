@@ -154,6 +154,79 @@
         .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); }
         .shadow-md { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); }
         .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
+
+        /* API Key Gate */
+        #api-key-gate {
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .api-key-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-family: monospace;
+            border: 1px solid #e5e7eb;
+            background: #f9fafb;
+            color: #374151;
+            max-width: 250px;
+            overflow: hidden;
+        }
+        .api-key-chip.active {
+            border-color: #22c55e;
+            background: #f0fdf4;
+            color: #166534;
+        }
+        .api-key-chip.error {
+            border-color: #ef4444;
+            background: #fef2f2;
+            color: #991b1b;
+        }
+        .api-key-chip .remove-key {
+            cursor: pointer;
+            margin-left: 0.25rem;
+            color: #9ca3af;
+            font-weight: bold;
+            font-size: 1rem;
+            line-height: 1;
+        }
+        .api-key-chip .remove-key:hover {
+            color: #ef4444;
+        }
+        .key-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+        .key-status-dot.valid { background-color: #22c55e; }
+        .key-status-dot.invalid { background-color: #ef4444; }
+        .key-status-dot.unknown { background-color: #d1d5db; }
+        #app-main-content { transition: filter 0.3s, opacity 0.3s; }
+        #app-main-content.locked { filter: blur(4px); pointer-events: none; opacity: 0.4; user-select: none; }
+        .manage-keys-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.875rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            border: 1px solid #D1D5DB;
+            background: #fff;
+            color: #374151;
+            transition: all 0.2s;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .manage-keys-btn:hover {
+            border-color: #9333ea;
+            color: #9333ea;
+            background: #f5f3ff;
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -164,6 +237,7 @@
             <div class="nav-container flex flex-wrap items-center justify-center gap-3">
                 <a href="index.html" class="nav-link nav-link-default">🎬 Prompt Generator</a>
                 <a href="grok.html" class="nav-link nav-link-active">🤖 Grok Generator</a>
+                <button id="open-key-manager" class="manage-keys-btn">🔑 API Keys <span id="key-count-badge" class="bg-purple-100 text-purple-700 rounded-full px-2 py-0 text-xs font-bold">0</span></button>
             </div>
         </nav>
 
@@ -173,7 +247,7 @@
         </header>
 
         <!-- Tata letak 3 kolom -->
-        <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <main id="app-main-content" class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 locked">
             
             <!-- Kolom Input (Kolom 1) -->
             <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-2xl border border-gray-200">
@@ -380,6 +454,50 @@
         </main>
     </div>
 
+    <!-- API Key Gate Modal -->
+    <div id="api-key-gate" class="fixed inset-0 bg-gray-900 bg-opacity-60 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 max-w-lg w-full p-6 sm:p-8">
+            <div class="text-center mb-6">
+                <div class="mx-auto w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900">Masukkan API Key Gemini</h2>
+                <p class="text-sm text-gray-500 mt-2">Diperlukan untuk mengakses fitur AI Generator. Anda bisa menambahkan beberapa key untuk rotasi otomatis saat limit habis.</p>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Gemini API Key</label>
+                    <div class="flex gap-2">
+                        <input type="password" id="api-key-input" class="flex-1 rounded-lg border border-gray-300 p-2.5 text-sm focus:border-purple-500 focus:ring-purple-500" placeholder="AIzaSy...">
+                        <button id="toggle-key-visibility" class="px-3 border border-gray-300 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition" title="Tampilkan/Sembunyikan">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <button id="add-key-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-4 rounded-lg transition-all duration-200 flex items-center justify-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                    Validasi & Tambah Key
+                </button>
+                <p id="key-validation-msg" class="text-sm text-center hidden"></p>
+
+                <!-- Daftar Key Tersimpan -->
+                <div id="saved-keys-section" class="border-t border-gray-200 pt-4 mt-4 hidden">
+                    <h3 class="text-sm font-semibold text-gray-700 mb-2">API Keys Tersimpan (<span id="saved-key-count">0</span>)</h3>
+                    <div id="saved-keys-list" class="flex flex-wrap gap-2 max-h-32 overflow-y-auto"></div>
+                </div>
+
+                <!-- Tombol Masuk -->
+                <button id="enter-app-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 hidden">
+                    ✅ Masuk ke Generator
+                </button>
+
+                <p class="text-xs text-gray-400 text-center">API Key disimpan di browser Anda (localStorage). Tidak dikirim ke server manapun selain Google AI.</p>
+            </div>
+        </div>
+    </div>
+
     <!-- Loading Overlay -->
     <div id="loading-overlay" class="hidden fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center z-50">
         <div class="text-center">
@@ -491,10 +609,160 @@ document.addEventListener('DOMContentLoaded', () => {
         libraryUploadInput: document.getElementById('library-upload-input'),
     };
 
-    const API_KEY = ""; 
-    const TEXT_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
-    const IMAGE_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${API_KEY}`;
-    const TTS_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${API_KEY}`;
+    // --- API KEY MANAGER ---
+    const STORAGE_KEY = 'grok_gemini_api_keys';
+    let apiKeys = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); // [{key, status:'valid'|'limited'|'invalid'}]
+    let failedKeysThisSession = new Set(); // track keys that hit 429 in current generation batch
+
+    const getActiveKey = () => {
+        const available = apiKeys.filter(k => k.status !== 'invalid' && !failedKeysThisSession.has(k.key));
+        if (available.length === 0) {
+            // Semua gagal di session ini, reset dan coba lagi
+            failedKeysThisSession.clear();
+            const fallback = apiKeys.filter(k => k.status !== 'invalid');
+            if (fallback.length === 0) return null;
+            return fallback[Math.floor(Math.random() * fallback.length)].key;
+        }
+        return available[Math.floor(Math.random() * available.length)].key;
+    };
+
+    const markKeyLimited = (key) => {
+        failedKeysThisSession.add(key);
+        const entry = apiKeys.find(k => k.key === key);
+        if (entry) entry.status = 'limited';
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(apiKeys));
+        console.warn(`Key ...${key.slice(-6)} marked limited. Rotating...`);
+    };
+
+    const buildApiUrl = (model) => {
+        const key = getActiveKey();
+        if (!key) throw new Error('Tidak ada API Key yang tersedia. Silakan tambahkan API Key.');
+        return { url: `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, usedKey: key };
+    };
+
+    const getTextApiUrl = () => buildApiUrl('gemini-2.5-flash-preview-09-2025');
+    const getImageApiUrl = () => buildApiUrl('gemini-2.5-flash-image-preview');
+    const getTtsApiUrl = () => buildApiUrl('gemini-2.5-flash-preview-tts');
+
+    // --- API Key Gate UI ---
+    const apiKeyGate = document.getElementById('api-key-gate');
+    const apiKeyInput = document.getElementById('api-key-input');
+    const addKeyBtn = document.getElementById('add-key-btn');
+    const keyValidationMsg = document.getElementById('key-validation-msg');
+    const savedKeysSection = document.getElementById('saved-keys-section');
+    const savedKeysList = document.getElementById('saved-keys-list');
+    const savedKeyCount = document.getElementById('saved-key-count');
+    const enterAppBtn = document.getElementById('enter-app-btn');
+    const toggleKeyVisBtn = document.getElementById('toggle-key-visibility');
+    const openKeyManagerBtn = document.getElementById('open-key-manager');
+    const keyCountBadge = document.getElementById('key-count-badge');
+    const appMainContent = document.getElementById('app-main-content');
+
+    const showKeyMsg = (msg, isError = false) => {
+        keyValidationMsg.textContent = msg;
+        keyValidationMsg.classList.remove('hidden', 'text-green-600', 'text-red-600');
+        keyValidationMsg.classList.add(isError ? 'text-red-600' : 'text-green-600');
+    };
+
+    const hideKeyMsg = () => keyValidationMsg.classList.add('hidden');
+
+    const renderKeyList = () => {
+        savedKeyCount.textContent = apiKeys.length;
+        keyCountBadge.textContent = apiKeys.length;
+        if (apiKeys.length === 0) {
+            savedKeysSection.classList.add('hidden');
+            enterAppBtn.classList.add('hidden');
+            appMainContent.classList.add('locked');
+            return;
+        }
+        savedKeysSection.classList.remove('hidden');
+        enterAppBtn.classList.remove('hidden');
+        savedKeysList.innerHTML = '';
+        apiKeys.forEach((entry, idx) => {
+            const chip = document.createElement('div');
+            const statusClass = entry.status === 'valid' ? 'active' : (entry.status === 'invalid' ? 'error' : '');
+            const dotClass = entry.status === 'valid' ? 'valid' : (entry.status === 'invalid' ? 'invalid' : 'unknown');
+            chip.className = `api-key-chip ${statusClass}`;
+            chip.innerHTML = `<span class="key-status-dot ${dotClass}"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">...${entry.key.slice(-8)}</span><span class="remove-key" data-idx="${idx}">&times;</span>`;
+            savedKeysList.appendChild(chip);
+        });
+        // Remove key listeners
+        savedKeysList.querySelectorAll('.remove-key').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const idx = parseInt(e.target.dataset.idx);
+                apiKeys.splice(idx, 1);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(apiKeys));
+                renderKeyList();
+                if (apiKeys.length === 0) {
+                    appMainContent.classList.add('locked');
+                    apiKeyGate.classList.remove('hidden');
+                }
+            });
+        });
+    };
+
+    const validateApiKey = async (key) => {
+        try {
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
+            if (res.ok) return { valid: true };
+            if (res.status === 400 || res.status === 403) return { valid: false, msg: 'API Key tidak valid atau tidak memiliki akses.' };
+            if (res.status === 429) return { valid: true, msg: 'Key valid tapi sedang rate-limited. Tetap ditambahkan.' };
+            return { valid: false, msg: `Error ${res.status}` };
+        } catch (e) {
+            return { valid: false, msg: 'Gagal koneksi ke Google AI. Periksa internet Anda.' };
+        }
+    };
+
+    addKeyBtn.addEventListener('click', async () => {
+        const key = apiKeyInput.value.trim();
+        if (!key) { showKeyMsg('Masukkan API Key terlebih dahulu.', true); return; }
+        if (!key.startsWith('AIza')) { showKeyMsg('Format API Key tidak valid. Key Gemini dimulai dengan "AIza...".', true); return; }
+        if (apiKeys.find(k => k.key === key)) { showKeyMsg('API Key ini sudah ada dalam daftar.', true); return; }
+
+        addKeyBtn.disabled = true;
+        addKeyBtn.innerHTML = '<span class="loader w-5 h-5 border-2 border-white border-t-transparent rounded-full inline-block"></span> Memvalidasi...';
+        hideKeyMsg();
+
+        const result = await validateApiKey(key);
+        addKeyBtn.disabled = false;
+        addKeyBtn.innerHTML = '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg> Validasi & Tambah Key';
+
+        if (result.valid) {
+            apiKeys.push({ key, status: 'valid' });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(apiKeys));
+            apiKeyInput.value = '';
+            showKeyMsg(result.msg || 'API Key valid! Berhasil ditambahkan.', false);
+            renderKeyList();
+        } else {
+            showKeyMsg(result.msg, true);
+        }
+    });
+
+    apiKeyInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') addKeyBtn.click(); });
+
+    toggleKeyVisBtn.addEventListener('click', () => {
+        apiKeyInput.type = apiKeyInput.type === 'password' ? 'text' : 'password';
+    });
+
+    enterAppBtn.addEventListener('click', () => {
+        if (apiKeys.length === 0) return;
+        apiKeyGate.classList.add('hidden');
+        appMainContent.classList.remove('locked');
+    });
+
+    openKeyManagerBtn.addEventListener('click', () => {
+        renderKeyList();
+        apiKeyGate.classList.remove('hidden');
+    });
+
+    // Init: check if keys exist
+    renderKeyList();
+    if (apiKeys.length > 0) {
+        // Keys ada, langsung buka
+        apiKeyGate.classList.add('hidden');
+        appMainContent.classList.remove('locked');
+    }
+    // --- END API KEY MANAGER ---
 
     const ttsVoices = [
         { id: 'Puck', name: 'Pria • Enerjik & Fun (Cocok konten promosi)' },
@@ -742,14 +1010,33 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const apiCall = async (url, payload) => {
+        // URL sudah mengandung key, extract key untuk tracking
+        const keyMatch = url.match(/key=([^&]+)/);
+        const usedKey = keyMatch ? keyMatch[1] : null;
+        
         let response;
         let delay = 1000;
+        let lastUrl = url;
+        
         for (let i = 0; i < 5; i++) { 
-            response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            response = await fetch(lastUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             if (response.ok) break;
-            if (response.status === 429 || response.status >= 500) {
+            
+            if (response.status === 429) {
+                // Rate limited - mark key dan rotate ke key lain
+                const currentKeyMatch = lastUrl.match(/key=([^&]+)/);
+                if (currentKeyMatch) markKeyLimited(currentKeyMatch[1]);
+                
+                const newKey = getActiveKey();
+                if (newKey) {
+                    lastUrl = lastUrl.replace(/key=[^&]+/, `key=${newKey}`);
+                    console.log(`Rotated to key ...${newKey.slice(-6)}`);
+                }
                 await new Promise(res => setTimeout(res, delay));
-                delay *= 2; 
+                delay *= 2;
+            } else if (response.status >= 500) {
+                await new Promise(res => setTimeout(res, delay));
+                delay *= 2;
             } else { break; }
         }
         
@@ -765,6 +1052,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (!response.ok) throw new Error(`API Error ${response.status}: ${data?.error?.message || JSON.stringify(data)}`);
+        
+        // Jika sampai sini berhasil, reset status key yang dipakai
+        const finalKeyMatch = lastUrl.match(/key=([^&]+)/);
+        if (finalKeyMatch) {
+            const entry = apiKeys.find(k => k.key === finalKeyMatch[1]);
+            if (entry && entry.status === 'limited') {
+                entry.status = 'valid';
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(apiKeys));
+            }
+        }
+        
         return data;
     };
     
@@ -801,7 +1099,8 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         
         try {
-            const result = await apiCall(TEXT_API_URL, payload);
+            const { url: textUrl } = getTextApiUrl();
+            const result = await apiCall(textUrl, payload);
             const textResponse = result.candidates[0].content.parts[0].text;
             const json = extractJSON(textResponse);
             return json ? json.videoPrompt : "Camera dolly in, subtle motion.";
@@ -878,7 +1177,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if(isFashion && uploadedFiles.backgroundImage) payload.contents[0].parts.push({ inlineData: { mimeType: uploadedFiles.backgroundImage.type, data: uploadedFiles.backgroundImage.base64 } });
 
-        const result = await apiCall(TEXT_API_URL, payload);
+        const { url: textUrl } = getTextApiUrl();
+        const result = await apiCall(textUrl, payload);
         const textResponse = result.candidates[0].content.parts[0].text;
         
         const jsonResponse = extractJSON(textResponse);
@@ -905,7 +1205,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 if (uploadedFiles.productImage) parts.push({ inlineData: { mimeType: uploadedFiles.productImage.type, data: uploadedFiles.productImage.base64 } });
                 
-                const result = await apiCall(IMAGE_API_URL, payload);
+                const { url: imgUrl } = getImageApiUrl();
+                const result = await apiCall(imgUrl, payload);
                 const imagePart = result.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
                 if (!imagePart) throw new Error('No image data.');
                 
@@ -921,6 +1222,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const startGenerationProcess = async () => {
+        if (apiKeys.length === 0) return showToast('Tambahkan API Key Gemini terlebih dahulu!', true);
+        if (!getActiveKey()) return showToast('Semua API Key tidak valid. Tambahkan key baru.', true);
+        failedKeysThisSession.clear(); // Reset per generation batch
         if (!selectedStyle) return showToast('Pilih gaya konten.', true);
         if (!selectedAspectRatio) return showToast('Pilih rasio video di Pengaturan Iklan.', true);
         if (modelMode === 'upload' && !uploadedFiles.modelImage && (selectedStyle === 'runway-mode' || selectedStyle === 'story-telling')) {
@@ -1090,7 +1394,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     } 
                 }
             };
-            const result = await apiCall(TTS_API_URL, payload);
+            const { url: ttsUrl } = getTtsApiUrl();
+            const result = await apiCall(ttsUrl, payload);
             const audioPart = result?.candidates?.[0]?.content?.parts?.[0];
             
             if (audioPart?.inlineData?.data) {
