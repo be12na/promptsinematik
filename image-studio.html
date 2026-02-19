@@ -769,7 +769,7 @@
         };
 
         const getTextApiUrl = () => buildApiUrl('gemini-2.5-flash');
-        const getImageApiUrl = () => buildApiUrl('gemini-2.5-flash-image-preview');
+        const getImageApiUrl = () => buildApiUrl('gemini-2.0-flash-exp');
 
         // Smart fetch with key rotation on 429
         async function apiFetch(url, options, usedKey) {
@@ -1085,7 +1085,7 @@
                 if (uploadedModelImageBase64) { parts.push({ inlineData: { mimeType: modelImageMimeType, data: uploadedModelImageBase64 } }); }
                 const payload = { contents: [{ parts: parts }], generationConfig: { responseModalities: ['IMAGE'] }, };
                 const response = await apiFetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }, usedKey);
-                if (!response.ok) throw new Error('API error: ' + response.statusText);
+                if (!response.ok) { const errBody = await response.json().catch(() => ({})); throw new Error('API error ' + response.status + ': ' + (errBody.error?.message || response.statusText)); }
                 const result = await response.json();
                 const base64Data = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
                 if (base64Data) {
@@ -1095,10 +1095,10 @@
                 } else { throw new Error("Respon tidak valid dari API."); }
             } catch (error) {
                 console.error('Error for card ' + id + ':', error);
-                outputContainer.innerHTML = '<div class="text-xs text-red-600 p-2 text-center">Gagal memuat visual.</div>';
+                outputContainer.innerHTML = '<div class="text-xs text-red-600 p-2 text-center">Gagal: ' + error.message + '</div>';
             }
         }
-        
+
         const createDynamicCards = (grid, prompts) => {
             grid.innerHTML = '';
             prompts.forEach((p, index) => {
@@ -1566,7 +1566,7 @@
                 
                 const payload = { contents: [{ parts: parts }], generationConfig: { responseModalities: ['IMAGE'] }, };
                 const response = await apiFetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }, usedKey);
-                if (!response.ok) throw new Error('API error: ' + response.statusText);
+                if (!response.ok) { const errBody = await response.json().catch(() => ({})); throw new Error('API error ' + response.status + ': ' + (errBody.error?.message || response.statusText)); }
                 const result = await response.json();
                 const base64Data = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
 
@@ -1579,7 +1579,7 @@
                 } else { throw new Error("Respon tidak valid dari API."); }
             } catch (error) {
                 console.error('Error for ad card ' + id + ':', error);
-                outputContainer.innerHTML = '<div class="text-xs text-red-600 p-2 text-center">Gagal memuat visual.</div>';
+                outputContainer.innerHTML = '<div class="text-xs text-red-600 p-2 text-center">Gagal: ' + error.message + '</div>';
             }
         }
 
