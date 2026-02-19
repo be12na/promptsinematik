@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Generator Prompt Video AI</title>
+
+  <!-- Inter (biar font beneran ke-load) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS (pre-compiled, kompatibel cPanel hosting) -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+
+  <style>
+    body { background-color: #F8FAFC; font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    .container { max-width: 1200px; }
+    .shadow-custom {
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -2px rgba(0,0,0,0.05);
+    }
+
+    /* Custom theme colors (pengganti tailwind.config) */
+    .bg-primary-blue { background-color: #1D4ED8; }
+    .text-primary-blue { color: #1D4ED8; }
+    .bg-primary-light { background-color: #EFF6FF; }
+    .bg-accent-orange { background-color: #F59E0B; }
+    .hover\:bg-primary-blue:hover { background-color: #1D4ED8; }
+    .focus\:ring-primary-blue:focus { --tw-ring-color: #1D4ED8; }
+    .focus\:border-primary-blue:focus { border-color: #1D4ED8; }
+
+    /* Custom pills */
+    input[type="radio"]:checked + label,
+    input[type="checkbox"]:checked + label {
+      background-color: #1D4ED8;
+      color: #fff;
+      border-color: #1D4ED8;
+    }
+    .input-group label {
+      transition: all 0.2s;
+      cursor: pointer;
+      border: 1px solid #D1D5DB;
+      user-select: none;
+    }
+    .input-group input[type="radio"],
+    .input-group input[type="checkbox"] { display: none; }
+
+    /* Font fallback */
+    textarea, select, button {
+      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+  </style>
+</head>
+
+<body class="font-sans p-4 md:p-8">
+  <div class="container mx-auto">
+    <header class="text-center mb-8">
+      <h1 class="text-4xl font-extrabold text-gray-900 mb-2">🎬 Generator Prompt Video AI</h1>
+      <p class="text-xl text-gray-600">Buat prompt sinematik yang disesuaikan untuk Sora, Veo, atau Grok.</p>
+    </header>
+
+    <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Kolom 1: Kontrol Input -->
+      <section class="lg:col-span-2 p-6 bg-white rounded-xl shadow-custom h-full">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">1. Detail Konten & Model AI</h2>
+
+        <!-- Input Produk/Jasa -->
+        <div class="mb-6">
+          <label for="productDetail" class="block text-lg font-medium text-gray-700 mb-2">Detail Produk/Jasa (Wajib)</label>
+          <textarea id="productDetail" rows="3"
+            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary-blue focus:border-primary-blue"
+            placeholder="Contoh: Sepatu lari premium, ringan, warna merah marun, tahan air. USP: Sangat nyaman untuk marathon."></textarea>
+        </div>
+
+        <!-- Pemilihan Model AI -->
+        <div class="mb-6">
+          <label class="block text-lg font-medium text-gray-700 mb-3">Pilih Model Video AI Target</label>
+          <div id="aiModel" class="input-group flex flex-wrap gap-4">
+            <input type="radio" id="sora" name="model" value="Sora (OpenAI)" checked />
+            <label for="sora" class="px-5 py-2 rounded-full border text-gray-700 bg-primary-light transition duration-150 ease-in-out hover:bg-primary-blue hover:text-white">Sora (OpenAI)</label>
+
+            <input type="radio" id="veo" name="model" value="Veo (Google AI)" />
+            <label for="veo" class="px-5 py-2 rounded-full border text-gray-700 bg-primary-light transition duration-150 ease-in-out hover:bg-primary-blue hover:text-white">Veo (Google AI)</label>
+
+            <input type="radio" id="grok" name="model" value="Grok (xAI)" />
+            <label for="grok" class="px-5 py-2 rounded-full border text-gray-700 bg-primary-light transition duration-150 ease-in-out hover:bg-primary-blue hover:text-white">Grok (xAI)</label>
+          </div>
+          <p class="text-sm text-gray-500 mt-2">Model mempengaruhi fokus prompt (Sinematik / Konsistensi / Narasi).</p>
+        </div>
+
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2 mt-8">2. Kustomisasi Persona Mendalam</h2>
+
+        <!-- Gender (beneran gender) -->
+        <div class="mb-6">
+          <label class="block text-lg font-medium text-gray-700 mb-3">Gender</label>
+          <div id="gender" class="input-group flex flex-wrap gap-4">
+            <input type="radio" id="gender_pria" name="gender" value="Pria" checked />
+            <label for="gender_pria" class="px-5 py-2 rounded-full border text-gray-700">Pria</label>
+
+            <input type="radio" id="gender_wanita" name="gender" value="Wanita" />
+            <label for="gender_wanita" class="px-5 py-2 rounded-full border text-gray-700">Wanita</label>
+
+            <input type="radio" id="gender_nonbinary" name="gender" value="Non-binary" />
+            <label for="gender_nonbinary" class="px-5 py-2 rounded-full border text-gray-700">Non-binary</label>
+          </div>
+        </div>
+
+        <!-- Atribut gaya berpakaian (pisah dari gender) -->
+        <div class="mb-6">
+          <label class="block text-lg font-medium text-gray-700 mb-3">Gaya Berpakaian / Atribut</label>
+          <div id="attire" class="input-group flex flex-wrap gap-4">
+            <input type="radio" id="attire_none" name="attire" value="Tanpa atribut khusus" checked />
+            <label for="attire_none" class="px-5 py-2 rounded-full border text-gray-700">Netral</label>
+
+            <input type="radio" id="attire_muslim" name="attire" value="Berpakaian Muslim (modest, rapi)" />
+            <label for="attire_muslim" class="px-5 py-2 rounded-full border text-gray-700">Muslim (modest)</label>
+
+            <input type="radio" id="attire_sporty" name="attire" value="Sporty / athleisure" />
+            <label for="attire_sporty" class="px-5 py-2 rounded-full border text-gray-700">Sporty</label>
+
+            <input type="radio" id="attire_formal" name="attire" value="Formal / business attire" />
+            <label for="attire_formal" class="px-5 py-2 rounded-full border text-gray-700">Formal</label>
+
+            <input type="radio" id="attire_street" name="attire" value="Streetwear modern" />
+            <label for="attire_street" class="px-5 py-2 rounded-full border text-gray-700">Streetwear</label>
+          </div>
+        </div>
+
+        <!-- Usia & Pekerjaan -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <label for="age" class="block text-lg font-medium text-gray-700 mb-2">Usia Perkiraan</label>
+            <select id="age" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary-blue focus:border-primary-blue">
+              <option value="18-24">18–24 (Muda, energik)</option>
+              <option value="25-34" selected>25–34 (Profesional, mapan)</option>
+              <option value="35-44">35–44 (Berwibawa, keluarga)</option>
+              <option value="45-55">45–55 (Senior, percaya diri)</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="profession" class="block text-lg font-medium text-gray-700 mb-2">Profesi/Peran</label>
+            <select id="profession" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary-blue focus:border-primary-blue">
+              <option value="Seorang Content Creator" selected>Content Creator</option>
+              <option value="Seorang Profesional Muda">Profesional Muda</option>
+              <option value="Seorang Pebisnis Sukses">Pebisnis Sukses</option>
+              <option value="Seorang Atlet">Atlet/Pelari</option>
+              <option value="Seorang Ibu Muda">Ibu Muda (Modern)</option>
+              <option value="Seorang Mahasiswa">Mahasiswa</option>
+              <option value="Seorang Karyawan Kantoran">Karyawan Kantoran</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Personality / delivery -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div>
+            <label for="personality" class="block text-lg font-medium text-gray-700 mb-2">Kepribadian</label>
+            <select id="personality" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary-blue focus:border-primary-blue">
+              <option value="percaya diri, tegas, meyakinkan" selected>Percaya diri & tegas</option>
+              <option value="ramah, hangat, approachable">Ramah & hangat</option>
+              <option value="tenang, minimalis, elegan">Tenang & elegan</option>
+              <option value="energik, antusias, playful">Energik & playful</option>
+              <option value="serius, profesional, to-the-point">Profesional & to-the-point</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="delivery" class="block text-lg font-medium text-gray-700 mb-2">Gaya Bicara</label>
+            <select id="delivery" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary-blue focus:border-primary-blue">
+              <option value="bahasa Indonesia natural, ringan, jelas" selected>Indonesia natural</option>
+              <option value="bahasa Indonesia formal, premium tone">Indonesia formal</option>
+              <option value="bahasa Indonesia santai, sedikit slang">Indonesia santai</option>
+              <option value="English (clear, confident, ad-style)">English ad-style</option>
+              <option value="campuran Indonesia-English (code-switching halus)">Mix Indo–English</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="emotion" class="block text-lg font-medium text-gray-700 mb-2">Emosi Dominan</label>
+            <select id="emotion" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary-blue focus:border-primary-blue">
+              <option value="antusias" selected>Antusias</option>
+              <option value="tenang">Tenang</option>
+              <option value="penasaran">Penasaran</option>
+              <option value="terkesan / wow">Terkesan</option>
+              <option value="urgency / meyakinkan">Urgency</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Detail fisik (opsional) -->
+        <div class="mb-6">
+          <label class="block text-lg font-medium text-gray-700 mb-3">Detail Fisik (Opsional)</label>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <label for="hair" class="block text-sm font-medium text-gray-700 mb-2">Rambut</label>
+              <select id="hair" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary-blue focus:border-primary-blue">
+                <option value="rambut rapi, natural" selected>Rapi natural</option>
+                <option value="rambut pendek modern">Pendek modern</option>
+                <option value="rambut panjang bergelombang">Panjang bergelombang</option>
+                <option value="rambut diikat rapi">Diikat rapi</option>
+              </select>
+            </div>
+            <div>
+              <label for="look" class="block text-sm font-medium text-gray-700 mb-2">Look</label>
+              <select id="look" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary-blue focus:border-primary-blue">
+                <option value="clean, fresh, natural makeup" selected>Clean & fresh</option>
+                <option value="premium, high-fashion subtle">Premium subtle</option>
+                <option value="sporty, sweaty realism">Sporty realism</option>
+                <option value="office-ready, polished">Polished</option>
+              </select>
+            </div>
+            <div>
+              <label for="props" class="block text-sm font-medium text-gray-700 mb-2">Properti Pendukung</label>
+              <select id="props" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary-blue focus:border-primary-blue">
+                <option value="tanpa properti tambahan" selected>Tanpa tambahan</option>
+                <option value="smartphone untuk demo/rekam">Smartphone</option>
+                <option value="laptop di meja kerja">Laptop</option>
+                <option value="tas gym / botol minum">Atribut olahraga</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sinematografi -->
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2 mt-8">3. Detail Sinematografi</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div>
+            <label for="setting" class="block text-lg font-medium text-gray-700 mb-2">Latar/Lokasi</label>
+            <select id="setting" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary-blue focus:border-primary-blue">
+              <option value="Kota metropolitan yang ramai saat matahari terbenam" selected>Kota Metropolitan (Sunset)</option>
+              <option value="Kafe minimalis dengan pencahayaan alami yang lembut">Kafe Minimalis</option>
+              <option value="Pemandangan alam pegunungan yang berkabut dan epik">Pegunungan Berkabut</option>
+              <option value="Ruangan kantor modern yang bersih">Kantor Modern</option>
+              <option value="Rumah modern minimalis dengan interior cerah">Rumah Modern</option>
+              <option value="Jalanan hujan malam hari dengan pantulan neon">Neon Rain Night</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="style" class="block text-lg font-medium text-gray-700 mb-2">Gaya Sinematik</label>
+            <select id="style" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary-blue focus:border-primary-blue">
+              <option value="Cinematic, 4K, HDR, Color Grading Teal and Orange" selected>Cinematic (Teal & Orange)</option>
+              <option value="Documentary, Natural Colors, 35mm Film Grain">Documentary (35mm)</option>
+              <option value="Clean, Bright, Minimalist, High Key Lighting">Minimalist (High Key)</option>
+              <option value="Luxury product commercial, glossy highlights, premium mood">Luxury Commercial</option>
+              <option value="Moody, low-key lighting, dramatic shadows, cinematic contrast">Moody Low-key</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="duration" class="block text-lg font-medium text-gray-700 mb-2">Durasi Maksimal</label>
+            <select id="duration" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary-blue focus:border-primary-blue">
+              <option value="10">10 Detik</option>
+              <option value="15" selected>15 Detik</option>
+              <option value="20">20 Detik</option>
+              <option value="30">30 Detik</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Tambahan sinematografi -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div>
+            <label for="timeofday" class="block text-lg font-medium text-gray-700 mb-2">Waktu</label>
+            <select id="timeofday" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary-blue focus:border-primary-blue">
+              <option value="pagi hari dengan cahaya lembut" selected>Pagi (soft)</option>
+              <option value="siang hari, terang, clean">Siang (clean)</option>
+              <option value="golden hour, warm highlights">Golden hour</option>
+              <option value="malam, lampu kota, kontras tinggi">Malam (city lights)</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="aspect" class="block text-lg font-medium text-gray-700 mb-2">Aspect Ratio</label>
+            <select id="aspect" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary-blue focus:border-primary-blue">
+              <option value="9:16 (vertical)" selected>9:16 (Reels/TikTok)</option>
+              <option value="16:9 (horizontal)">16:9 (YouTube)</option>
+              <option value="1:1 (square)">1:1 (Square)</option>
+              <option value="4:5 (feed portrait)">4:5 (Feed)</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="fps" class="block text-lg font-medium text-gray-700 mb-2">Frame Rate</label>
+            <select id="fps" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary-blue focus:border-primary-blue">
+              <option value="24fps cinematic" selected>24fps (cinematic)</option>
+              <option value="30fps standard">30fps</option>
+              <option value="60fps smooth">60fps</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div>
+            <label for="lens" class="block text-lg font-medium text-gray-700 mb-2">Lensa</label>
+            <select id="lens" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary-blue focus:border-primary-blue">
+              <option value="35mm, natural perspective" selected>35mm natural</option>
+              <option value="50mm, portrait compression, bokeh">50mm portrait</option>
+              <option value="24mm, wide, dynamic movement">24mm wide</option>
+              <option value="85mm, tight close-up, creamy bokeh">85mm close-up</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="lighting" class="block text-lg font-medium text-gray-700 mb-2">Lighting</label>
+            <select id="lighting" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary-blue focus:border-primary-blue">
+              <option value="soft diffused light, flattering skin tones" selected>Soft diffused</option>
+              <option value="hard light with crisp shadows, dramatic">Hard dramatic</option>
+              <option value="neon / practical lights, urban mood">Neon practical</option>
+              <option value="studio product lighting, glossy highlights">Studio product</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="cameraMove" class="block text-lg font-medium text-gray-700 mb-2">Pergerakan Kamera</label>
+            <select id="cameraMove" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary-blue focus:border-primary-blue">
+              <option value="smooth handheld stabilized, intimate feel" selected>Handheld stabilized</option>
+              <option value="gimbal tracking shot, smooth follow">Gimbal tracking</option>
+              <option value="slow dolly-in, build emphasis">Slow dolly-in</option>
+              <option value="static tripod, clean composition">Static tripod</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Fitur Tambahan (opsional) -->
+        <div class="mb-6">
+          <label class="block text-lg font-medium text-gray-700 mb-3">Fitur Tambahan (Opsional)</label>
+          <div id="extras" class="input-group flex flex-wrap gap-4">
+            <input type="checkbox" id="slowmotion" name="extra" value="Slow motion (1000fps style), emphasize key moments" />
+            <label for="slowmotion" class="px-4 py-2 rounded-full border text-gray-700 hover:bg-gray-100">Slow Motion</label>
+
+            <input type="checkbox" id="dollyzoom" name="extra" value="Camera move: dolly zoom (Vertigo effect) for dramatic emphasis" />
+            <label for="dollyzoom" class="px-4 py-2 rounded-full border text-gray-700 hover:bg-gray-100">Dolly Zoom Shot</label>
+
+            <input type="checkbox" id="broll" name="extra" value="Add b-roll product macro shots (texture, logo, materials) intercut with hero shots" />
+            <label for="broll" class="px-4 py-2 rounded-full border text-gray-700 hover:bg-gray-100">B-roll Macro</label>
+
+            <input type="checkbox" id="subtitles" name="extra" value="Add burned-in subtitles matching spoken dialogue (clean, readable)" />
+            <label for="subtitles" class="px-4 py-2 rounded-full border text-gray-700 hover:bg-gray-100">Subtitles</label>
+
+            <input type="checkbox" id="calltoaction" name="extra" value="End with clear on-screen CTA text: 'BELI SEKARANG' + product hero frame" />
+            <label for="calltoaction" class="px-4 py-2 rounded-full border text-gray-700 hover:bg-gray-100">CTA Teks</label>
+          </div>
+        </div>
+
+        <button onclick="generatePrompt()"
+          class="w-full bg-accent-orange text-white font-bold py-3 px-4 rounded-lg hover:bg-orange-600 transition duration-300 text-xl mt-4">
+          🔥 Hasilkan Prompt Video
+        </button>
+      </section>
+
+      <!-- Kolom 2: Hasil Prompt -->
+      <section class="lg:col-span-1 p-6 bg-white rounded-xl shadow-custom">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">4. Prompt yang Dihasilkan</h2>
+
+        <h3 class="text-lg font-semibold text-gray-700 mt-4 mb-2">A. Prompt Teks Sederhana</h3>
+        <div id="promptOutput"
+          class="bg-gray-100 p-4 min-h-[120px] rounded-lg border border-dashed border-gray-400 text-gray-800 whitespace-pre-wrap leading-relaxed">
+          Prompt siap dibuat setelah Anda mengisi detail di samping dan menekan tombol.
+        </div>
+
+        <button id="copyTextButton" onclick="copyPrompt('promptOutput', 'textAlertBox')"
+          class="w-full bg-primary-blue text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300 mt-4 opacity-50 cursor-not-allowed"
+          disabled>
+          Salin Prompt Teks
+        </button>
+        <div id="textAlertBox" class="mt-2 p-3 bg-green-100 text-green-700 rounded-lg hidden" role="alert">Prompt berhasil disalin!</div>
+
+        <h3 class="text-lg font-semibold text-gray-700 mt-8 mb-2">B. Prompt JSON Lanjutan (Disarankan untuk Presisi)</h3>
+        <pre id="jsonOutput" class="bg-gray-800 p-4 min-h-[180px] rounded-lg text-green-300 whitespace-pre-wrap text-sm overflow-x-auto">
+{ "status": "Menunggu input..." }
+        </pre>
+
+        <button id="copyJsonButton" onclick="copyPrompt('jsonOutput', 'jsonAlertBox')"
+          class="w-full bg-accent-orange text-white font-bold py-2 px-4 rounded-lg hover:bg-orange-600 transition duration-300 mt-4 opacity-50 cursor-not-allowed"
+          disabled>
+          Salin Prompt JSON
+        </button>
+        <div id="jsonAlertBox" class="mt-2 p-3 bg-green-100 text-green-700 rounded-lg hidden" role="alert">JSON berhasil disalin!</div>
+
+        <h3 class="text-xl font-bold text-gray-800 mt-8 mb-4 border-b pb-1">Panduan Penggunaan</h3>
+        <ul class="text-sm text-gray-600 space-y-2">
+          <li><strong class="text-primary-blue">Sora:</strong> Prioritaskan detail kamera, blocking, dan sinematografi.</li>
+          <li><strong class="text-primary-blue">Veo:</strong> Tekankan konsistensi objek/aktor, fisika realistis, dan continuity.</li>
+          <li><strong class="text-primary-blue">Grok:</strong> Utamakan naskah/monolog yang tajam, hook cepat, punchline, CTA jelas.</li>
+        </ul>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    function setCopyButtonsEnabled(enabled) {
+      const copyTextButton = document.getElementById("copyTextButton");
+      const copyJsonButton = document.getElementById("copyJsonButton");
+      [copyTextButton, copyJsonButton].forEach((btn) => {
+        btn.disabled = !enabled;
+        btn.classList.toggle("opacity-50", !enabled);
+        btn.classList.toggle("cursor-not-allowed", !enabled);
+      });
+    }
+
+    async function copyPrompt(targetId, alertId) {
+      const el = document.getElementById(targetId);
+      const alertBox = document.getElementById(alertId);
+      let text = el.textContent;
+
+      if (targetId === "jsonOutput") {
+        try { text = JSON.stringify(JSON.parse(text)); } catch (e) {}
+      }
+
+      const showAlert = (ok, msg) => {
+        alertBox.textContent = msg;
+        alertBox.classList.remove("hidden");
+        alertBox.classList.toggle("bg-green-100", ok);
+        alertBox.classList.toggle("text-green-700", ok);
+        alertBox.classList.toggle("bg-red-100", !ok);
+        alertBox.classList.toggle("text-red-700", !ok);
+        setTimeout(() => alertBox.classList.add("hidden"), 2500);
+      };
+
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+          showAlert(true, targetId === "jsonOutput" ? "JSON berhasil disalin!" : "Prompt berhasil disalin!");
+          return;
+        }
+      } catch (e) {
+        // fallback
+      }
+
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+        if (!ok) throw new Error("execCommand failed");
+        showAlert(true, targetId === "jsonOutput" ? "JSON berhasil disalin!" : "Prompt berhasil disalin!");
+      } catch (e) {
+        showAlert(false, "Gagal menyalin. Silakan salin manual.");
+      }
+    }
+
+    function buildActorDetail(gender, age, profession, attire, hair, look, props, personality, delivery, emotion) {
+      const parts = [
+        `${gender} ${profession}, usia sekitar ${age}`,
+        `kepribadian: ${personality}`,
+        `gaya bicara: ${delivery}`,
+        `emosi: ${emotion}`,
+        `attire: ${attire}`,
+        `rambut: ${hair}`,
+        `look: ${look}`,
+        `props: ${props}`
+      ];
+      return parts.join(", ");
+    }
+
+    function generateAdvancedJsonPrompt(inputs) {
+      const {
+        model, gender, age, profession, attire, personality, delivery, emotion, hair, look, props,
+        setting, style, duration, aspect, fps, lens, lighting, cameraMove, timeofday,
+        extras, productDetail
+      } = inputs;
+
+      const actorDetail = buildActorDetail(gender, age, profession, attire, hair, look, props, personality, delivery, emotion);
+
+      const timingConstraint =
+`CRITICAL TIMING:
+- Do NOT improvise, shorten, fade-out, auto-end, or cut early.
+- The video MUST continue until the spoken dialogue finishes and CTA completes.
+- No early cut to black. No fade-out before CTA finishes.
+- Match visuals to the full audio length (up to ${duration} seconds).
+- End immediately after CTA completes.`;
+
+      // Default: lip-sync speaking model
+      let audioInstructions =
+`Audio:
+- Spoken dialogue by the on-screen actor (NOT separate narration).
+- Camera must show face/mouth during speaking with accurate lip-sync.
+- Clear, clean voice, no muffled audio.`;
+
+      let coreInstructions = "";
+      let scriptGuidance =
+`Script:
+- Structure: Hook (0-3s) → Problem (3-6s) → Solution (6-12s) → CTA (final).
+- Mention product USP clearly and naturally. Keep it punchy.`;
+
+      if (model.includes("Sora")) {
+        coreInstructions =
+`Visual:
+- Cinematic 4K HDR look. ${style}.
+- Precise camera blocking, smooth motion, premium composition.
+- Emphasize hero shots + product texture details.`;
+      } else if (model.includes("Veo")) {
+        coreInstructions =
+`Visual:
+- Hyper-realistic. 100% object/person consistency.
+- Strong continuity, stable identity, stable product appearance.
+- Natural physics and plausible motion.`;
+      } else if (model.includes("Grok")) {
+        coreInstructions =
+`Visual:
+- Problem → Solution with clever narrative angle.
+- Allow witty lines and a distinct voice. Still keep product clarity.`;
+        audioInstructions =
+`Audio:
+- Monologue voice (can be voice-over OR on-screen).
+- If voice-over, still show actor reacting naturally.
+- Delivery: clever, confident, not cringe.`;
+        scriptGuidance =
+`Script:
+- 1 strong hook line, 1 surprising insight, 1 clear benefit, 1 CTA.
+- No long exposition. No generic filler.`;
+      }
+
+      const cameraShots =
+`Camera & Tech:
+- Aspect: ${aspect}, ${fps}, lens: ${lens}
+- Lighting: ${lighting}; time: ${timeofday}
+- Movement: ${cameraMove}
+- Include: wide establishing, mid, close-up face, macro product detail, final CTA hero frame.
+- Keep product in focus when mentioned; avoid confusing cuts.`;
+
+      const promptContent =
+`${timingConstraint}
+
+Concept:
+- Problem → Solution → CTA (ad format)
+
+Product/Service:
+- ${productDetail}
+
+Actor:
+- ${actorDetail}
+
+Setting:
+- ${setting}
+
+Style:
+- ${coreInstructions}
+
+${cameraShots}
+
+${audioInstructions}
+
+${scriptGuidance}
+
+Extras:
+- ${extras || "NONE"}
+
+Hard Rules:
+- Follow instructions strictly.
+- Keep brand/product details accurate.
+- No early ending; match full spoken audio length.`;
+
+      return {
+        model_target: model,
+        prompt_type: "Advanced_Structured_Video_Ad",
+        max_duration_seconds: parseInt(duration, 10),
+        technical: {
+          aspect_ratio: aspect,
+          frame_rate: fps,
+          lens: lens,
+          lighting: lighting,
+          camera_movement: cameraMove,
+          time_of_day: timeofday
+        },
+        persona: {
+          gender,
+          age_range: age,
+          role: profession,
+          attire,
+          personality,
+          delivery_style: delivery,
+          dominant_emotion: emotion,
+          hair,
+          look,
+          props
+        },
+        product_context: productDetail,
+        prompt: promptContent.trim()
+      };
+    }
+
+    function generatePrompt() {
+      const productDetail = document.getElementById("productDetail").value.trim();
+      const output = document.getElementById("promptOutput");
+
+      if (!productDetail) {
+        output.textContent = "❗ Harap isi Detail Produk/Jasa terlebih dahulu.";
+        output.classList.remove("bg-gray-100", "text-gray-800");
+        output.classList.add("bg-red-100", "text-red-700");
+        document.getElementById("jsonOutput").textContent = '{ "error": "Detail Produk wajib diisi" }';
+        setCopyButtonsEnabled(false);
+        return;
+      }
+
+      output.classList.remove("bg-red-100", "text-red-700");
+      output.classList.add("bg-gray-100", "text-gray-800");
+
+      // Basic inputs
+      const model = document.querySelector('input[name="model"]:checked').value;
+      const gender = document.querySelector('input[name="gender"]:checked').value;
+      const attire = document.querySelector('input[name="attire"]:checked').value;
+      const age = document.getElementById("age").value;
+      const profession = document.getElementById("profession").value;
+
+      const personality = document.getElementById("personality").value;
+      const delivery = document.getElementById("delivery").value;
+      const emotion = document.getElementById("emotion").value;
+
+      const hair = document.getElementById("hair").value;
+      const look = document.getElementById("look").value;
+      const props = document.getElementById("props").value;
+
+      // Cinematography inputs
+      const setting = document.getElementById("setting").value;
+      const style = document.getElementById("style").value;
+      const duration = document.getElementById("duration").value;
+
+      const timeofday = document.getElementById("timeofday").value;
+      const aspect = document.getElementById("aspect").value;
+      const fps = document.getElementById("fps").value;
+      const lens = document.getElementById("lens").value;
+      const lighting = document.getElementById("lighting").value;
+      const cameraMove = document.getElementById("cameraMove").value;
+
+      // Extras
+      const extras = Array.from(document.querySelectorAll('input[name="extra"]:checked'))
+        .map((cb) => cb.value)
+        .join(", ");
+
+      const actorDetail = buildActorDetail(
+        gender, age, profession, attire, hair, look, props, personality, delivery, emotion
+      );
+
+      // TEXT prompt
+      let promptStructure = "";
+
+      if (model.includes("Sora")) {
+        promptStructure =
+`Video iklan sinematik kualitas tinggi, durasi maksimal ${duration} detik.
+Aspect: ${aspect}. FPS: ${fps}. Lens: ${lens}.
+Waktu: ${timeofday}. Lighting: ${lighting}. Camera: ${cameraMove}.
+
+Setting: ${setting}.
+Aktor: ${actorDetail}.
+
+Detail Produk/Jasa:
+- ${productDetail}
+
+Gaya Visual:
+- ${style}
+
+Shot list:
+- Establishing wide → mid shot (aktor + konteks) → close-up (ekspresi & lip-sync) → macro product detail → final CTA hero frame.
+
+${extras ? "Efek/Addon: " + extras : ""}
+
+Aturan:
+- Tidak boleh cut/auto-end sebelum dialog & CTA selesai.
+- Produk harus jelas terlihat saat disebut.`;
+      } else if (model.includes("Veo")) {
+        promptStructure =
+`Video hyper-realistis dan konsisten, durasi maksimal ${duration} detik.
+Aspect: ${aspect}. FPS: ${fps}. Lens: ${lens}.
+Waktu: ${timeofday}. Lighting: ${lighting}. Camera: ${cameraMove}.
+
+Setting: ${setting}.
+Aktor: ${actorDetail}.
+
+Produk/Jasa:
+- ${productDetail}
+
+Fokus:
+- Konsistensi aktor & produk 100% (warna, logo, bentuk, material).
+- Continuity kuat: wardrobe, props, background tidak berubah.
+
+Gaya Visual:
+- ${style}
+
+${extras ? "Detail Tambahan: " + extras : ""}`;
+      } else if (model.includes("Grok")) {
+        promptStructure =
+`Konsep video cerdas (Problem → Solution → CTA), durasi maksimal ${duration} detik.
+Aspect: ${aspect}. FPS: ${fps}. Lens: ${lens}.
+Waktu: ${timeofday}. Lighting: ${lighting}. Camera: ${cameraMove}.
+
+Setting: ${setting}.
+Karakter: ${actorDetail}.
+
+Tema Produk/Jasa:
+- ${productDetail}
+
+Tulis monolog singkat yang tajam:
+- Hook cepat, insight unik, benefit jelas, CTA tegas.
+- Hindari filler & kalimat generik.
+
+Gaya Visual:
+- ${style}
+
+${extras ? "Tambahan: " + extras : ""}`;
+      }
+
+      document.getElementById("promptOutput").textContent = promptStructure;
+
+      // JSON prompt
+      const jsonPrompt = generateAdvancedJsonPrompt({
+        model, gender, age, profession, attire, personality, delivery, emotion, hair, look, props,
+        setting, style, duration, aspect, fps, lens, lighting, cameraMove, timeofday,
+        extras, productDetail
+      });
+
+      document.getElementById("jsonOutput").textContent = JSON.stringify(jsonPrompt, null, 2);
+
+      setCopyButtonsEnabled(true);
+    }
+
+    window.onload = () => setCopyButtonsEnabled(false);
+  </script>
+</body>
+</html>
