@@ -227,25 +227,103 @@
             color: #9333ea;
             background: #f5f3ff;
         }
+
+        /* Mobile Navigation */
+        .mobile-nav-toggle {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 0.5rem;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .mobile-nav-toggle:hover {
+            background-color: #F3F4F6;
+        }
+        .mobile-nav-dropdown {
+            display: none;
+            flex-direction: column;
+            gap: 0.25rem;
+            padding-top: 0.75rem;
+            margin-top: 0.75rem;
+            border-top: 1px solid #E5E7EB;
+        }
+        .mobile-nav-dropdown a,
+        .mobile-nav-dropdown button {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            font-size: 0.95rem;
+            text-decoration: none;
+            color: #374151;
+            transition: background-color 0.2s;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+        }
+        .mobile-nav-dropdown a:hover,
+        .mobile-nav-dropdown button:hover {
+            background-color: #F3F4F6;
+        }
+        .mobile-nav-dropdown a.active {
+            background-color: #f5f3ff;
+            color: #7e22ce;
+            font-weight: 600;
+        }
+        .mobile-nav-dropdown.open {
+            display: flex;
+        }
+        @media (max-width: 767px) {
+            .mobile-nav-toggle {
+                display: flex;
+            }
+            .desktop-nav-links {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 <body class="antialiased">
     <div id="app-container" class="min-h-screen p-4 sm:p-6 lg:p-8">
 
         <!-- Navigation Menu: Veo3 Prompt Gen -->
-        <nav class="flex items-center justify-between mb-8 px-2 py-3 bg-white bg-opacity-80 border-b border-gray-200 rounded-xl shadow-sm">
-            <div class="flex items-center gap-3">
-                <span class="inline-flex items-center text-purple-700 font-bold text-xl tracking-tight">
-                    <svg class="w-7 h-7 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h8M12 8v8"/></svg>
-                    Veo3 Prompt Gen
-                </span>
+        <nav class="mb-8 px-4 py-3 bg-white bg-opacity-80 border-b border-gray-200 rounded-xl shadow-sm">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="inline-flex items-center text-purple-700 font-bold text-xl tracking-tight">
+                        <svg class="w-7 h-7 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h8M12 8v8"/></svg>
+                        Veo3 Prompt Gen
+                    </span>
+                </div>
+                <!-- Desktop Nav Links -->
+                <div class="desktop-nav-links flex items-center gap-2 flex-wrap">
+                    <a href="index.html" class="px-4 py-2 rounded-lg font-medium text-gray-700 hover:bg-gray-100 transition">🎬 Prompt Generator</a>
+                    <a href="grok.html" class="px-4 py-2 rounded-lg font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 transition">🤖 Grok Generator</a>
+                    <a href="image-studio.html" class="px-4 py-2 rounded-lg font-medium text-gray-700 hover:bg-gray-100 transition">🎨 Image Studio</a>
+                    <a href="voice-generator.html" class="px-4 py-2 rounded-lg font-medium text-gray-700 hover:bg-gray-100 transition">🎙️ Voice Generator</a>
+                    <button id="open-key-manager" class="manage-keys-btn">🔑 API Keys <span id="key-count-badge" class="bg-purple-100 text-purple-700 rounded-full px-2 py-0 text-xs font-bold">0</span></button>
+                </div>
+                <!-- Mobile Hamburger -->
+                <button class="mobile-nav-toggle" onclick="toggleMobileNav()" aria-label="Menu navigasi">
+                    <svg id="hamburger-icon" class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                    <svg id="close-icon" class="w-6 h-6 text-gray-700 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
             </div>
-            <div class="flex items-center gap-2 flex-wrap">
-                <a href="index.html" class="px-4 py-2 rounded-lg font-medium text-gray-700 hover:bg-gray-100 transition">🎬 Prompt Generator</a>
-                <a href="grok.html" class="px-4 py-2 rounded-lg font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 transition">🤖 Grok Generator</a>
-                <a href="image-studio.html" class="px-4 py-2 rounded-lg font-medium text-gray-700 hover:bg-gray-100 transition">🎨 Image Studio</a>
-                <a href="voice-generator.html" class="px-4 py-2 rounded-lg font-medium text-gray-700 hover:bg-gray-100 transition">🎙️ Voice Generator</a>
-                <button id="open-key-manager" class="manage-keys-btn">🔑 API Keys <span id="key-count-badge" class="bg-purple-100 text-purple-700 rounded-full px-2 py-0 text-xs font-bold">0</span></button>
+            <!-- Mobile Dropdown Menu -->
+            <div id="mobile-nav-menu" class="mobile-nav-dropdown">
+                <a href="index.html">🎬 Prompt Generator</a>
+                <a href="grok.html" class="active">🤖 Grok Generator</a>
+                <a href="image-studio.html">🎨 Image Studio</a>
+                <a href="voice-generator.html">🎙️ Voice Generator</a>
+                <button id="open-key-manager-mobile" class="manage-keys-btn" style="justify-content: center;">🔑 API Keys <span class="bg-purple-100 text-purple-700 rounded-full px-2 py-0 text-xs font-bold key-count-badge-mobile">0</span></button>
             </div>
         </nav>
 
@@ -755,6 +833,34 @@ document.addEventListener('DOMContentLoaded', () => {
         renderKeyList();
         apiKeyGate.classList.remove('hidden');
     });
+
+    // Mobile API key manager button
+    const openKeyManagerMobileBtn = document.getElementById('open-key-manager-mobile');
+    if (openKeyManagerMobileBtn) openKeyManagerMobileBtn.addEventListener('click', () => {
+        renderKeyList();
+        apiKeyGate.classList.remove('hidden');
+    });
+
+    // Mobile Nav Toggle
+    function toggleMobileNav() {
+        var menu = document.getElementById('mobile-nav-menu');
+        var hamburger = document.getElementById('hamburger-icon');
+        var closeIcon = document.getElementById('close-icon');
+        menu.classList.toggle('open');
+        hamburger.classList.toggle('hidden');
+        closeIcon.classList.toggle('hidden');
+    }
+
+    // Sync mobile key badge count
+    const syncMobileKeyBadge = () => {
+        document.querySelectorAll('.key-count-badge-mobile').forEach(el => {
+            el.textContent = apiKeys.length;
+        });
+    };
+
+    // Patch renderKeyList to also sync mobile badge
+    const originalRenderKeyList = renderKeyList;
+    const patchedRenderKeyList = () => { originalRenderKeyList(); syncMobileKeyBadge(); };
 
     // Init: check if keys exist
     renderKeyList();
