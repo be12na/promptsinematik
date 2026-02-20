@@ -233,17 +233,19 @@
     <div id="app-container" class="min-h-screen p-4 sm:p-6 lg:p-8">
 
         <!-- Navigation Menu: Veo3 Prompt Gen -->
-        <nav class="flex items-center justify-between mb-8 px-2 py-3 bg-white/80 border-b border-gray-200 rounded-xl shadow-sm">
+        <nav class="flex items-center justify-between mb-8 px-2 py-3 bg-white bg-opacity-80 border-b border-gray-200 rounded-xl shadow-sm">
             <div class="flex items-center gap-3">
                 <span class="inline-flex items-center text-purple-700 font-bold text-xl tracking-tight">
                     <svg class="w-7 h-7 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h8M12 8v8"/></svg>
                     Veo3 Prompt Gen
                 </span>
             </div>
-            <div class="flex items-center gap-2">
-                <a href="grok.html" class="px-4 py-2 rounded-lg font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 transition">Veo3 Prompt Gen</a>
-                <a href="image-studio.html" class="px-4 py-2 rounded-lg font-medium text-gray-700 hover:bg-gray-100 transition">Image Studio</a>
-                <a href="voice-generator.html" class="px-4 py-2 rounded-lg font-medium text-gray-700 hover:bg-gray-100 transition">Voice Generator</a>
+            <div class="flex items-center gap-2 flex-wrap">
+                <a href="index.html" class="px-4 py-2 rounded-lg font-medium text-gray-700 hover:bg-gray-100 transition">🎬 Prompt Generator</a>
+                <a href="grok.html" class="px-4 py-2 rounded-lg font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 transition">🤖 Grok Generator</a>
+                <a href="image-studio.html" class="px-4 py-2 rounded-lg font-medium text-gray-700 hover:bg-gray-100 transition">🎨 Image Studio</a>
+                <a href="voice-generator.html" class="px-4 py-2 rounded-lg font-medium text-gray-700 hover:bg-gray-100 transition">🎙️ Voice Generator</a>
+                <button id="open-key-manager" class="manage-keys-btn">🔑 API Keys <span id="key-count-badge" class="bg-purple-100 text-purple-700 rounded-full px-2 py-0 text-xs font-bold">0</span></button>
             </div>
         </nav>
 
@@ -667,7 +669,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const renderKeyList = () => {
         savedKeyCount.textContent = apiKeys.length;
-        keyCountBadge.textContent = apiKeys.length;
+        if (keyCountBadge) keyCountBadge.textContent = apiKeys.length;
         if (apiKeys.length === 0) {
             savedKeysSection.classList.add('hidden');
             enterAppBtn.classList.add('hidden');
@@ -749,7 +751,7 @@ document.addEventListener('DOMContentLoaded', () => {
         appMainContent.classList.remove('locked');
     });
 
-    openKeyManagerBtn.addEventListener('click', () => {
+    if (openKeyManagerBtn) openKeyManagerBtn.addEventListener('click', () => {
         renderKeyList();
         apiKeyGate.classList.remove('hidden');
     });
