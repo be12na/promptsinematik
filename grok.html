@@ -728,53 +728,88 @@ document.addEventListener('DOMContentLoaded', () => {
         'gemini-2.0-flash-preview-image-generation',
         'gemini-2.0-flash-exp-image-generation',
         'gemini-2.0-flash-image-generation',
-        'gemini-2.0-flash-exp',
-        'gemini-2.0-flash'
+        'gemini-2.0-flash-exp'
     ];
 
     async function detectImageModel() {
         if (detectedImageModel) return detectedImageModel;
         const key = getActiveKey();
         if (!key) return IMAGE_MODEL_CANDIDATES[0];
+
+        // Step 1: Query ListModels — find models with "image-generation" in name
         try {
             const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
             if (res.ok) {
                 const data = await res.json();
-                const modelNames = (data.models || []).map(m => m.name.replace('models/', ''));
-                for (const candidate of IMAGE_MODEL_CANDIDATES) {
-                    if (modelNames.includes(candidate)) {
-                        console.log('[ImageModel] Auto-detected: ' + candidate);
-                        detectedImageModel = candidate;
-                        return candidate;
+                const models = data.models || [];
+                const imageGenModels = models.filter(m =>
+                    m.name.toLowerCase().includes('image-generation') &&
+                    m.supportedGenerationMethods &&
+                    m.supportedGenerationMethods.includes('generateContent')
+                );
+                if (imageGenModels.length > 0) {
+                    for (const candidate of IMAGE_MODEL_CANDIDATES) {
+                        const found = imageGenModels.find(m => m.name === `models/${candidate}`);
+                        if (found) {
+                            detectedImageModel = candidate;
+                            console.log('[ImageModel] Matched candidate from API: ' + detectedImageModel);
+                            return detectedImageModel;
+                        }
                     }
+                    const fallbackName = imageGenModels[0].name.replace('models/', '');
+                    console.log('[ImageModel] Using API image model: ' + fallbackName);
+                    detectedImageModel = fallbackName;
+                    return detectedImageModel;
                 }
-                const imageModel = (data.models || []).find(m =>
+                const anyImageModel = models.find(m =>
                     m.name.toLowerCase().includes('image') &&
                     m.supportedGenerationMethods &&
                     m.supportedGenerationMethods.includes('generateContent')
                 );
-                if (imageModel) {
-                    const name = imageModel.name.replace('models/', '');
-                    console.log('[ImageModel] Found via search: ' + name);
+                if (anyImageModel) {
+                    const name = anyImageModel.name.replace('models/', '');
+                    console.log('[ImageModel] Found image-capable model: ' + name);
                     detectedImageModel = name;
-                    return name;
+                    return detectedImageModel;
                 }
             }
         } catch (e) {
-            console.warn('[ImageModel] Detection failed, using fallback.', e);
+            console.warn('[ImageModel] ListModels failed:', e);
         }
+
+        // Step 2: Probe candidates with a real image generation test
+        console.log('[ImageModel] Probing candidates with live test...');
         for (const candidate of IMAGE_MODEL_CANDIDATES) {
             try {
-                const testUrl = `https://generativelanguage.googleapis.com/v1beta/models/${candidate}?key=${key}`;
-                const testRes = await fetch(testUrl);
-                if (testRes.ok) {
-                    console.log('[ImageModel] Verified via probe: ' + candidate);
+                const testUrl = `https://generativelanguage.googleapis.com/v1beta/models/${candidate}:generateContent?key=${key}`;
+                const testRes = await fetch(testUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: 'Generate a 1x1 white pixel image' }] }],
+                        generationConfig: { responseModalities: ['IMAGE'] }
+                    })
+                });
+                if (testRes.ok || testRes.status === 429) {
+                    console.log(`[ImageModel] Probe success: ${candidate} (status ${testRes.status})`);
                     detectedImageModel = candidate;
-                    return candidate;
+                    return detectedImageModel;
                 }
-            } catch (e) { /* continue */ }
+                const errBody = await testRes.json().catch(() => ({}));
+                const errMsg = errBody?.error?.message || '';
+                if (testRes.status === 404 || errMsg.toLowerCase().includes('modalit')) {
+                    console.log(`[ImageModel] Probe skip: ${candidate} — ${errMsg.substring(0, 80)}`);
+                    continue;
+                }
+                console.log(`[ImageModel] Probe inconclusive: ${candidate} (status ${testRes.status})`);
+            } catch (e) {
+                console.warn(`[ImageModel] Probe error for ${candidate}:`, e);
+            }
         }
+
+        // Step 3: Last resort fallback
         detectedImageModel = IMAGE_MODEL_CANDIDATES[0];
+        console.warn('[ImageModel] All probes failed. Fallback: ' + detectedImageModel);
         return detectedImageModel;
     }
 
